@@ -1,0 +1,9 @@
+- name: Create a user 
+  hosts: test2
+  become: yes
+  tasks:
+  - name: Add user baeldung
+    user:
+      name: bandomasis
+      shell: /bin/bash
+      home: /home/bandomasis
