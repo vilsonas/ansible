@@ -11,12 +11,12 @@
     # 2. Upgrade wazuh-agent
     - name: Upgrade wazuh-agent to the latest version
       apt:
-        name: wazuh-agent
+        name: apache2
         state: latest
         lock_timeout: 120
 
     # 3. Restart wazuh-agent service
     - name: Restart wazuh-agent service
       service:
-        name: wazuh-agent
+        name: apache2
         state: restarted
