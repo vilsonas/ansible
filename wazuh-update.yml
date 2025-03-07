@@ -1,0 +1,21 @@
+- hosts: all
+  become: true
+  tasks:
+    # 1. Update apt cache
+    - name: Update apt cache
+      apt:
+        update_cache: yes
+        lock_timeout: 120
+
+    # 2. Upgrade wazuh-agent
+    - name: Upgrade wazuh-agent to the latest version
+      apt:
+        name: wazuh-agent
+        state: latest
+        lock_timeout: 120
+
+    # 3. Restart wazuh-agent service
+    - name: Restart wazuh-agent service
+      service:
+        name: wazuh-agent
+        state: restarted
