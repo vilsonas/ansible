@@ -1,6 +1,6 @@
 - name: nanotest
   hosts: test
-  remote_user: root
+  #remote_user: root
   become: true
   become_method: sudo
   tasks:
