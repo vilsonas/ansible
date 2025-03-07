@@ -1,5 +1,5 @@
 - name: Create a user 
-  hosts: test2
+  hosts: test
   become: yes
   tasks:
   - name: Add user baeldung
