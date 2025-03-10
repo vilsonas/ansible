@@ -1,6 +1,5 @@
 # Install PostgreSQL on PostgreSQL-host
-- name: Install PostgreSQL
-  hosts: db
+  - hosts: db
   become: true
   tasks:
     - name: Add pgdg repo to sources.list.d
