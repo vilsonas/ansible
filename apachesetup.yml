@@ -17,8 +17,9 @@
         name: apache2
         enabled: true
         state: started
-    - name: open firewall
-      community.general.ufw:
-        rule: allow
-        port: 80
-        proto: tcp
+ 
+    #- name: open firewall
+   #   community.general.ufw:
+    #    rule: allow
+     #   port: 80
+      #  proto: tcp
