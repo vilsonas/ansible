@@ -2,7 +2,7 @@
   hosts: test
   become: yes
   tasks:
-  - name: Add user baeldung
+  - name: Pridedu vartotoja bandomasis
     user:
       name: bandomasis
       shell: /bin/bash
