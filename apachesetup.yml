@@ -11,19 +11,16 @@
     - name: apache2 listen on port 8081
       lineinfile: dest=/etc/apache2/ports.conf regexp="^Listen 80" line="Listen 8081" state=present
       notify:
-       
-
-
+      
     #- name: apache2 virtualhost on port 8081
      # lineinfile: dest=/etc/apache2/sites-available/000-default.conf regexp="^<VirtualHost \*:80>" line="<VirtualHost *:8081>" state=present
      # notify:
         
-    
     - name: custom index.html
       ansible.builtin.copy:
         dest: "/var/www/html/index.html"
         content: |
-          Custom Web Page   
+          Tai yra bandomasis web   
           
     - name: apache2 service enabled
       ansible.builtin.service:
@@ -34,5 +31,5 @@
     #- name: open firewall
    #   community.general.ufw:
     #    rule: allow
-     #   port: 80
+     #   port: 8081
       #  proto: tcp
