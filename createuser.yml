@@ -3,14 +3,16 @@
   become_method: sudo
   vars:
     users:
-      - "Donatas1"
-      - "Donatas2"
-      - "Donatas3"
+      - "testas1"
   tasks:
-    - name: "Create user accounts"
+  - name: "sukurti grupę"
+     group:
+      name: semaphore_test
+      state: present
+    - name: "Sukurti naujas paskyras"
       user:
         name: "{{ item }}"
-        groups: "admin,www-data"
+        groups: "semaphore_test,www-data"
       with_items: "{{ users }}"
     - name: "Add authorized keys"
       authorized_key:
@@ -21,5 +23,5 @@
       lineinfile:
         dest: "/etc/sudoers" # path: in version 2.3
         state: "present"
-        regexp: "^%admin"
-        line: "%admin ALL=(ALL) NOPASSWD: ALL"
+        regexp: "^%semaphore_test"
+        line: "%semaphore_test ALL=(ALL) NOPASSWD: ALL"
