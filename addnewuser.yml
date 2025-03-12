@@ -4,7 +4,7 @@
   become_method: sudo
   vars:
     theName: testas1
-    grupe: "{{ grupe }}"
+    grupe: sempahore_test
   tasks:
     - name: Create group
       group:
