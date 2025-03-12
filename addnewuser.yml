@@ -11,8 +11,7 @@
     ansible.builtin.user:
         name: “{{ theName }}”
         groups: semaphore_test
-        
-    - name: Sukuriam home direktorija
+     – name: Task to add a new user
     ansible.builtin.user:
         name: “{{ theName }}”
         create_home: yes
