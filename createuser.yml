@@ -1,4 +1,4 @@
-- hosts: "localhost"
+- hosts: test
   become: true
   become_method: sudo
   vars:
