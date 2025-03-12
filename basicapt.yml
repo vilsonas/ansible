@@ -1,4 +1,4 @@
-  name: Install aps
+  name: Install apps
   hosts: test
   become: true
   become_method: sudo
