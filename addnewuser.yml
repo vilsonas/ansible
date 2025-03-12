@@ -21,7 +21,7 @@
         state: present
         shell: /bin/bash
         group: "{{ grupe }}"
-      with_items: "{{ users }}"
+      with_items: "{{ semaphore_test }}"
 
     - name: Create sn SSH key for user {{ theName }}
       ansible.builtin.user:
