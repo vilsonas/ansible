@@ -2,8 +2,8 @@
 hosts: test
 become: true
 become_method: sudo
-    vars:
-        theName: testas1
+vars:
+    theName: testas1
 tasks:
 - name: Sukuriam grupe pavadinimu semaphore_test
 group:
