@@ -1,17 +1,17 @@
 - name: Prideti nauja vartotoja ir grupe
-hosts: test
-become: true
-become_method: sudo
-vars:
+  hosts: test
+  become: true
+  become_method: sudo
+  vars:
     theName: testas1
-tasks:
-- name: Sukuriam grupe pavadinimu semaphore_test
-group:
-    name: "{{ semaphore_test }}"
-    state: present
-– name: Task to add a new user
-ansible.builtin.user:
-    name: “{{ theName }}”
-    state: present
-    shell: /bin/bash
-    group: "{{ semaphore_test }}"
+  tasks:
+  - name: Sukuriam grupe pavadinimu semaphore_test
+    group:
+      name: "{{ semaphore_test }}"
+      state: present
+  – name: Task to add a new user
+    ansible.builtin.user:
+      name: “{{ theName }}”
+      state: present
+      shell: /bin/bash
+      group: "{{ semaphore_test }}"
