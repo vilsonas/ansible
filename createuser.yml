@@ -15,7 +15,7 @@
        name:  "{{ item }}"
        groups: semaphore_test
       with_items: "{{ users }}"
-    - name: Add authorized keys
+    - name: "Add authorized keys"
         authorized_key:
         user: "{{ item }}"
         key: "{{ lookup('file', 'files/'+ item + '.key.pub') }}"
