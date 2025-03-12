@@ -1,10 +1,13 @@
 - hosts: test
   become: true
   become_method: sudo
+  vars:
+    users:
+      - "testas1"
   tasks:
-   - name: create group1
+   - name: sukurti grupe
      group:
-      name: cloudnloud
+      name: semaphore_test
       state: present
    - name: create users
      user:
