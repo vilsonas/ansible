@@ -3,7 +3,7 @@
   become: true
   become_method: sudo
   vars:
-    theName: 
+    users: 
     - username: "testas1"
       groups: "semaphore_test"
     - username: "testas2"
