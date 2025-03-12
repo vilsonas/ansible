@@ -24,10 +24,10 @@
         group: "{{ grupe }}"
       with_items: "{{ users }}"
 
-      – name: Create sn SSH key for user {{ theName }}
+    - name: Create sn SSH key for user {{ theName }}
       ansible.builtin.user:
-                name: “{{ item.username }}”
-                generate_ssh_key: yes
-                ssh_key_bits: 2048
-                ssh_key_file: .ssh/id_rsa
-  with_items: "{{ users }}"
+       name: “{{ item.username }}”
+       generate_ssh_key: yes
+       ssh_key_bits: 2048
+       ssh_key_file: .ssh/id_rsa
+      with_items: "{{ users }}"
