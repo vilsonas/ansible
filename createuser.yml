@@ -9,7 +9,7 @@
     - name: "Create user accounts"
       user:
         name: "{{ item }}"
-        groups: "semaphore,www-data"
+        groups: "admin,www-data"
       with_items: "{{ users }}"
     - name: "Add authorized keys"
       authorized_key:
@@ -21,4 +21,4 @@
         dest: "/etc/sudoers" 
         state: "present"
         regexp: "^%semaphore"
-        line: "%semaphore ALL=(ALL) NOPASSWD: ALL"
+        line: "%admin ALL=(ALL) NOPASSWD: ALL"
