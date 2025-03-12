@@ -13,7 +13,7 @@
    - name: "create users"
      user:
        name:  "{{ item }}"
-       groups: semaphore_test
+       groups: "semaphore_test"
       with_items: "{{ users }}"
     - name: "Add authorized keys"
         authorized_key:
