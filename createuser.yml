@@ -10,7 +10,7 @@
      group:
        name: semaphore_test
        state: present
-   - name: create users
+   - name: "create users"
      user:
        name:  "{{ item }}"
        groups: semaphore_test
