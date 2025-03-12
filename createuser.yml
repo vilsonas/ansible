@@ -1,26 +1,37 @@
-- hosts: test
-  become: true
-  become_method: sudo
+- name: creating users and groups and ssh connection
+  hosts: test
+  become: yes
   tasks:
-   - name: sukurti grupe
-     group:
-       name: semaphore_test
-       state: present
-    - name: Add several users
-      ansible.builtin.user:
+   - user:
       name: "{{ item }}"
       state: present
-      groups: "wheel"
-      loop:
-        - testas1
-        - testas2
-    - name: "Add authorized keys"
-        authorized_key:
-        user: "{{ item }}"
-        key: "{{ lookup('file', 'files/'+ item + '.key.pub') }}"
-      with_items: "{{ users }}"
-    - name: "Allow admin users to sudo without a password"
-      lineinfile:
-        dest: "/etc/sudoers" # path: in version 2.3
-        state: "present"
-        regexp: "^%semaphore_test"
+     loop:
+      - testas1
+      - testas2
+   - group:
+      name: "{{ item }}"
+      state: present
+     loop:
+      - semaphore_testas
+
+   - ansible.builtin.user:
+      name: test1
+      shell: /bin/bash
+      groups: semaphore_testas
+      append: yes
+      
+   - ansible.builtin.user:
+      name: test2
+      shell: /bin/bash
+      groups: semaphore_testas
+      append: yes
+
+   - authorized_key:
+       user: test1
+       state: present
+       key: "{{ lookup('file', './user_id_rsa.pub') }}"
+
+   - authorized_key:
+       user: test2
+       state: present
+       key: "{{ lookup('file', './user_id_rsa.pub') }}"
