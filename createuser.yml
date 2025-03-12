@@ -4,6 +4,7 @@
   vars:
     users:
       - "testas1"
+      - "testas2"
   tasks:
    - name: sukurti grupe
      group:
@@ -13,7 +14,7 @@
      user:
        name:  "{{ item }}"
        groups: semaphore_test
-       with_items: "{{ users }}"
+       with_items: {{ users }}
     - name: Add authorized keys
         authorized_key:
         user: "{{ item }}"
