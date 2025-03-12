@@ -1,4 +1,4 @@
-    hosts: test
+    - hosts: test
     become: true
     become_method: sudo
     vars:
