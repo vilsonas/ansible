@@ -1,6 +1,7 @@
 - name: Manage Users and SSH Keys
   hosts: test
   become: yes
+  become_method: sudo
   vars:
     users:
       - name: bandomasis1
