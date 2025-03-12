@@ -9,9 +9,20 @@
      group:
       name: semaphore_test
       state: present
-   - name: create users
+    - name: create users
      user:
-      name: fawaz 
+      name:  "{{ item }}"
       comment: admin
-      groups: cloudnloud
+      groups: semaphore_test
       state: present
+      with_items: "{{ users }"
+    - name: "Add authorized keys"
+      authorized_key:
+        user: "{{ item }}"
+        key: "{{ lookup('file', 'files/'+ item + '.key.pub') }}"
+      with_items: "{{ users }}"
+    - name: "Allow admin users to sudo without a password"
+      lineinfile:
+        dest: "/etc/sudoers" # path: in version 2.3
+        state: "present"
+        regexp: "^%semaphore_test"
