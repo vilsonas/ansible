@@ -1,20 +1,19 @@
 - hosts: test
   become: true
   become_method: sudo
-  vars:
-    users:
-      - "testas1"
-      - "testas2"
   tasks:
    - name: sukurti grupe
      group:
        name: semaphore_test
        state: present
-   - name: "create users"
-     user:
-       name:  "{{ item }}"
-       groups: "semaphore_test"
-      with_items: "{{ users }}"
+    - name: Add several users
+      ansible.builtin.user:
+      name: "{{ item }}"
+      state: present
+      groups: "wheel"
+      loop:
+        - testas1
+        - testas2
     - name: "Add authorized keys"
         authorized_key:
         user: "{{ item }}"
