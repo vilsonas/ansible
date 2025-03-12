@@ -12,10 +12,10 @@
         name: “{{ theName }}”
         groups: semaphore_test
         
-    - name: Sukuriam useriui home direktorija
+    - name: Sukuriam home direktorija
     ansible.builtin.user:
-            name: “{{ theName }}”
-            create_home: yes
+        name: “{{ theName }}”
+        create_home: yes
             
         – name: Tast to check information in user home folder
             ansible.builtin.command:
