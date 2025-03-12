@@ -20,5 +20,5 @@
       lineinfile:
         dest: "/etc/sudoers" 
         state: "present"
-        regexp: "^%semaphore"
+        regexp: "^%admin"
         line: "%admin ALL=(ALL) NOPASSWD: ALL"
