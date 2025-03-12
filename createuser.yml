@@ -1,10 +1,11 @@
 - hosts: test
   become: true
   become_method: sudo
-  vars:
+vars:
     users:
-      - "testas"
-
+      - "Donatas1"
+      - "Donatas2"
+      - "Donatas3"
   tasks:
     - name: "Create user accounts"
       user:
@@ -16,9 +17,9 @@
         user: "{{ item }}"
         key: "{{ lookup('file', 'files/'+ item + '.key.pub') }}"
       with_items: "{{ users }}"
-    - name: "Leisti sempahore vartotojams naudoti SSH be PSW"
+    - name: "Allow admin users to sudo without a password"
       lineinfile:
-        dest: "/etc/sudoers" 
+        dest: "/etc/sudoers" # path: in version 2.3
         state: "present"
         regexp: "^%admin"
         line: "%admin ALL=(ALL) NOPASSWD: ALL"
