@@ -7,7 +7,7 @@
   tasks:
   - name: Sukuriam grupe pavadinimu semaphore_test
     group:
-      name: "{{ semaphore_test }}"
+      name: semaphore_test
       state: present
   – name: Task to add a new user
     user:
