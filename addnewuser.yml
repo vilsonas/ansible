@@ -4,10 +4,11 @@
   become_method: sudo
   vars:
     theName: testas1
+    grupe: "{{ grupe }}"
   tasks:
     - name: Create group
       group:
-        name: "{{ semaphore_test }}"
+        name: "{{ grupe }}"
         state: present
 
     - name: Create Users Task
@@ -15,5 +16,4 @@
         name: "{{ theName }}"
         state: present
         shell: /bin/bash
-        group: "{{ semaphore_test }}"
-      
+        group: "{{ grupe }}"
