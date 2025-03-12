@@ -4,25 +4,13 @@
   vars:
     users:
       - "testas1"
-  tasks:
-  - name: Sukurti nauja grupe
-      group:
-        name: semaphore_test
-        state: present
-    - name: "Sukurti naujas paskyras"
-      user:
-        name: "{{ item }}"
-        groups: "semaphore_test,www-data"
-        state: present
-      with_items: "{{ users }}"
-    - name: "Add authorized keys"
-      authorized_key:
-        user: "{{ item }}"
-        key: "{{ lookup('file', 'files/'+ item + '.key.pub') }}"
-      with_items: "{{ users }}"
-    - name: "Allow admin users to sudo without a password"
-      lineinfile:
-        dest: "/etc/sudoers" # path: in version 2.3
-        state: "present"
-        regexp: "^%semaphore_test"
-        line: "%semaphore_test ALL=(ALL) NOPASSWD: ALL"
+tasks:
+   - name: create group1
+     group:
+      name: cloudnloud
+      state: present
+   - name: create users
+     user:
+      name: fawaz 
+      comment: admin
+      groups: cloudnloud
