@@ -17,10 +17,9 @@
     ansible.builtin.command:
         cmd: “ls -A /home/{{ theName }}”
         register: results
-
-        – name: Display the listing of home directory
-            ansible.builtin.debug:
-                var: results.stdout
+    – name: Display the listing of home directory
+    ansible.builtin.debug:
+        var: results.stdout
 
         – name: Create sn SSH key for user {{ theName }}
             ansible.builtin.user:
