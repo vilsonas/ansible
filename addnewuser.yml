@@ -3,7 +3,9 @@
   become: true
   become_method: sudo
   vars:
-    theName: testas1
+    theName: 
+    - testas1
+    - testas2
     grupe: sempahore_test
   tasks:
     - name: Create group
