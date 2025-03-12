@@ -11,7 +11,7 @@
     ansible.builtin.user:
         name: “{{ theName }}”
         groups: semaphore_test
-        append: true
+        append: yes
     - name: Sukuriam useriui home direktorija
     ansible.builtin.user:
             name: “{{ theName }}”
