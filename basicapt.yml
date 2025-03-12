@@ -6,7 +6,7 @@
     - name: Install tools
       apt:
         name: "{{ item }}"
-        state: latest
+        state: absent
       loop:
         - vim
         - net-tools
