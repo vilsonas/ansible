@@ -8,7 +8,6 @@
       groups: "semaphore_test"
     - username: "testas2"
       groups: "semaphore_test"
-    grupe: sempahore_test
   tasks:
     - name: Create group
       group:
