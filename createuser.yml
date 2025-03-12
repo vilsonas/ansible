@@ -5,7 +5,7 @@
     users:
       - "testas1"
   tasks:
-  -   name: sukurti grupę
+  - name: sukurti grupę
       group:
       name: semaphore_test
       state: present
