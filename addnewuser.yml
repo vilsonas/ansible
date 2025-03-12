@@ -8,10 +8,10 @@
             name: semaphore_test
             state: present
     – name: Task to add a new user
-        ansible.builtin.user:
-            name: “{{ theName }}”
-            groups: semaphore_test
-            append: true
+    ansible.builtin.user:
+        name: “{{ theName }}”
+        groups: semaphore_test
+        append: true
     - name: Sukuriam useriui home direktorija
         ansible.builtin.user:
             name: “{{ theName }}”
