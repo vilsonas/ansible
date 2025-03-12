@@ -7,7 +7,7 @@
           group:
             name: semaphore_test
             state: present
-        – name: Task to add a new user
+    – name: Task to add a new user
             ansible.builtin.user:
                 name: “{{ theName }}”
                 groups: semaphore_test
