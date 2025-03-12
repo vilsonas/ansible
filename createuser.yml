@@ -14,3 +14,4 @@
       name: fawaz 
       comment: admin
       groups: cloudnloud
+      state: present
