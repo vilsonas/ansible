@@ -5,21 +5,18 @@
     tasks:
         - name: Sukuriam grupe pavadinimu semaphore_test
           group:
-            name: semaphore_test
+            name: "{{ semaphore_test }}"
             state: present
     – name: Task to add a new user
     ansible.builtin.user:
         name: “{{ theName }}”
-        groups: "{{ semaphore_test }}"
-     – name: Task to add a new user
-    ansible.builtin.user:
-        name: “{{ theName }}”
-        create_home: yes
-            
-        – name: Tast to check information in user home folder
-            ansible.builtin.command:
-                cmd: “ls -A /home/{{ theName }}”
-                register: results
+        state: present
+        shell: /bin/bash
+        group: "{{ semaphore_test }}"
+    – name: Tast to check information in user home folder
+    ansible.builtin.command:
+        cmd: “ls -A /home/{{ theName }}”
+        register: results
 
         – name: Display the listing of home directory
             ansible.builtin.debug:
