@@ -14,7 +14,6 @@
       name:  "{{ item }}"
       comment: admin
       groups: semaphore_test
-      state: present
       with_items: "{{ users }"
     - name: "Add authorized keys"
       authorized_key:
