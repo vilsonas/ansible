@@ -1,7 +1,7 @@
-    – name: Playbook to add a new user
     hosts: test
     vars:
-    theName: testas1
+        theName: testas1
+        
     tasks:
         - name: Sukuriam grupe pavadinimu semaphore_test
           group:
