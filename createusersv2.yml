@@ -23,6 +23,15 @@
         shell: /bin/bash
       loop: "{{ users }}"
 
+    - name: Sukuriu ssh direktorijas kiekvienam vartotojui
+      file:
+        path: "/home/{{ item.name }}/.ssh"
+        state: directory
+        owner: "{{ item.name }}"
+        group: "{{ item.name }}"
+        mode: '0700'
+      loop: "{{ users }}"
+
     - name: Generuoju SSH raktus vartotojams
       openssh_keypair:
         path: "/home/{{ item.name }}/.ssh/id_rsa"
