@@ -1,0 +1,47 @@
+- name: Manage Users and SSH Keys
+  hosts: test
+  become: yes
+  vars:
+    users:
+      - name: bandomasis1
+      - name: bandomasis2
+    group: grupe
+
+  tasks:
+    - name: Sukuriu grupe pavadinimu grupe
+      group:
+        name: "{{ group }}"
+        state: present
+
+    - name: Sukuriu vartotojus ir pridedu i grupe
+      user:
+        name: "{{ item.name }}"
+        groups: "{{ group }}"
+        append: yes
+        create_home: yes
+        shell: /bin/bash
+      loop: "{{ users }}"
+
+    - name: Generuoju SSH raktus vartotojams
+      openssh_keypair:
+        path: "/home/{{ item.name }}/.ssh/id_rsa"
+        owner: "{{ item.name }}"
+        group: "{{ item.name }}"
+        mode: '0600'
+      loop: "{{ users }}"
+
+    - name: 
+      file:
+        path: "/home/{{ item.name }}/.ssh"
+        state: directory
+        owner: "{{ item.name }}"
+        group: "{{ item.name }}"
+        mode: '0700'
+      loop: "{{ users }}"
+
+    - name: Sudo be passwordo
+      copy:
+        content: "{{ item.name }} ALL=(ALL) NOPASSWD:ALL"
+        dest: "/etc/sudoers.d/{{ item.name }}"
+        mode: '0440'
+      loop: "{{ users }}"
