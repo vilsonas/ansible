@@ -1,0 +1,53 @@
+- name: Install and configure MySQL
+  hosts: all
+  become: yes
+  vars:
+    mysql_root_password: "RootPass123!"
+    db_name: "mydatabase"
+    db_user: "dbuser"
+    db_password: "UserPass123!"
+    allowed_subnet: "192.168.189.%"
+
+  tasks:
+    - name: Install MySQL
+      package:
+        name: "{{ 'mysql-server' if ansible_os_family == 'RedHat' else 'mariadb-server' }}"
+        state: present
+
+    - name: Start and enable MySQL service
+      service:
+        name: "{{ 'mysqld' if ansible_os_family == 'RedHat' else 'mysql' }}"
+        state: started
+        enabled: yes
+
+    - name: Secure MySQL root password
+      mysql_user:
+        name: root
+        host: localhost
+        password: "{{ mysql_root_password }}"
+        login_user: root
+        login_password: "{{ mysql_root_password }}"
+        priv: "*.*:ALL,GRANT"
+      ignore_errors: yes  # In case it's already set
+
+    - name: Create MySQL database
+      mysql_db:
+        name: "{{ db_name }}"
+        state: present
+        login_user: root
+        login_password: "{{ mysql_root_password }}"
+
+    - name: Create MySQL user with restricted access
+      mysql_user:
+        name: "{{ db_user }}"
+        password: "{{ db_password }}"
+        host: "{{ allowed_subnet }}"
+        priv: "{{ db_name }}.*:ALL"
+        state: present
+        login_user: root
+        login_password: "{{ mysql_root_password }}"
+
+    - name: Restart MySQL to apply changes
+      service:
+        name: "{{ 'mysqld' if ansible_os_family == 'RedHat' else 'mysql' }}"
+        state: restarted
