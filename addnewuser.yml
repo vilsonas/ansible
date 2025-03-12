@@ -10,7 +10,7 @@
     – name: Task to add a new user
     ansible.builtin.user:
         name: “{{ theName }}”
-        groups: semaphore_test
+        groups: "{{ semaphore_test }}"
      – name: Task to add a new user
     ansible.builtin.user:
         name: “{{ theName }}”
