@@ -3,8 +3,7 @@
     become_method: sudo
     vars:
         theName: testas1
-        
-    tasks:
+        tasks:
         - name: Sukuriam grupe pavadinimu semaphore_test
           group:
             name: "{{ semaphore_test }}"
