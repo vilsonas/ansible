@@ -41,12 +41,10 @@
       loop: "{{ users }}"
 
     - name: Kopijuoju SSH viešuosius raktus į atitinkamus vartotojo katalogus
-      copy:
-        src: "/home/{{ item.name }}/.ssh/id_rsa.pub"
-        dest: "/home/{{ item.name }}/.ssh/authorized_keys"
-        owner: "{{ item.name }}"
-        group: "{{ item.name }}"
-        mode: '0600'
+      authorized_key:
+        user: "{{ item.name }}"
+        state: present
+        key: "{{ lookup('file', '/home/' + item.name + '/.ssh/id_rsa.pub') }}"
       loop: "{{ users }}"
 
     - name: Sudo be passwordo
