@@ -1,11 +1,9 @@
-- name: Instaliuoju ir konfiguruoju MySQL
-  hosts: db
+---
+- name: Install and configure MySQL securely
+  hosts: all
   become: yes
- # vars_files:
- # - group_vars/secrets.yml
-  
+
   tasks:
-    tasks:
     - name: Install required Python packages for MySQL
       package:
         name:
@@ -37,7 +35,7 @@
         login_user: root
         login_password: "{{ mysql_root_password }}"
         priv: "*.*:ALL,GRANT"
-      ignore_errors: yes  # Ignore error if already set
+      ignore_errors: yes
 
     - name: Remove MySQL root remote access
       mysql_user:
