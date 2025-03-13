@@ -21,14 +21,14 @@
         content: |
           <VirtualHost *:80>
               ServerName example.com
-              Redirect permanent / https://example.com/
+              Redirect permanent / https://192.168.195.103/
           </VirtualHost>
           <VirtualHost *:443>
-              ServerName example.com
+              ServerName 192.168.195.103
               DocumentRoot /var/www/html
               SSLEngine on
-              SSLCertificateFile /etc/letsencrypt/live/example.com/fullchain.pem
-              SSLCertificateKeyFile /etc/letsencrypt/live/example.com/privkey.pem
+              SSLCertificateFile /etc/letsencrypt/live/192.168.195.103/fullchain.pem
+              SSLCertificateKeyFile /etc/letsencrypt/live/192.168.195.103/privkey.pem
           </VirtualHost>
         mode: '0644'
 
@@ -47,7 +47,7 @@
     - name: SSL su Let's Encrypt
       command: certbot --apache --non-interactive --agree-tos --email admin@example.com -d example.com
       args:
-        creates: /etc/letsencrypt/live/example.com/fullchain.pem
+        creates: /etc/letsencrypt/live/192.168.195.103/fullchain.pem
       notify: Restart Apache
 
     - name: Automatinis SSL atsinaujinimas
