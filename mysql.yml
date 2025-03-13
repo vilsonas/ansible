@@ -30,14 +30,13 @@
         name: "{{ 'mysqld' if ansible_os_family == 'RedHat' else 'mysql' }}"
         state: started
         enabled: yes
-
+        
     - name: Set MySQL root password and remove anonymous users
       mysql_user:
         name: root
         password: "{{ mysql_root_password }}"
         host: localhost
-        login_user: root
-        login_password: "{{ mysql_root_password }}"
+        login_unix_socket: /var/run/mysqld/mysqld.sock  # Use socket authentication first
         priv: "*.*:ALL,GRANT"
       ignore_errors: yes
 
