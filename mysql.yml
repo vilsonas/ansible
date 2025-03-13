@@ -5,45 +5,83 @@
  # - group_vars/secrets.yml
   
   tasks:
-    - name: Install MySQL
+    tasks:
+    - name: Install required Python packages for MySQL
       package:
-        name: mariadb-server
+        name:
+          - python3-pip
+          - python3-mysqldb
         state: present
 
-    - name: Start MySQL
+    - name: Install PyMySQL
+      pip:
+        name: pymysql
+        state: present
+
+    - name: Install MySQL Server
+      package:
+        name: "{{ 'mysql-server' if ansible_os_family == 'RedHat' else 'mariadb-server' }}"
+        state: present
+
+    - name: Start and enable MySQL service
       service:
-        name: mysql
+        name: "{{ 'mysqld' if ansible_os_family == 'RedHat' else 'mysql' }}"
         state: started
         enabled: yes
 
-    - name: Kuriu vartotoją root
+    - name: Set MySQL root password and remove anonymous users
       mysql_user:
         name: root
-        host: localhost
         password: "{{ mysql_root_password }}"
+        host: localhost
         login_user: root
         login_password: "{{ mysql_root_password }}"
         priv: "*.*:ALL,GRANT"
-      ignore_errors: yes  # In case it's already set
+      ignore_errors: yes  # Ignore error if already set
 
-    - name: Kuriu MySQL duombaze
-      mysql_db:
-        name: "{{ db_name }}"
+    - name: Remove MySQL root remote access
+      mysql_user:
+        name: root
+        host: "%"
+        state: absent
+        login_user: root
+        login_password: "{{ mysql_root_password }}"
+
+    - name: Create new MySQL admin user
+      mysql_user:
+        name: "{{ mysql_admin_user }}"
+        password: "{{ mysql_admin_password }}"
+        host: "%"
+        priv: "*.*:ALL,GRANT"
         state: present
         login_user: root
         login_password: "{{ mysql_root_password }}"
 
-    - name: Sukuriu MySQL useri ir riboju jo prieigą
+    - name: Remove root login completely from MySQL
+      mysql_user:
+        name: root
+        state: absent
+        login_user: "{{ mysql_admin_user }}"
+        login_password: "{{ mysql_admin_password }}"
+
+    - name: Create MySQL database
+      mysql_db:
+        name: "{{ db_name }}"
+        state: present
+        login_user: "{{ mysql_admin_user }}"
+        login_password: "{{ mysql_admin_password }}"
+
+    - name: Create MySQL user with restricted access
       mysql_user:
         name: "{{ db_user }}"
         password: "{{ db_password }}"
         host: "{{ allowed_subnet }}"
         priv: "{{ db_name }}.*:ALL"
         state: present
-        login_user: root
-        login_password: "{{ mysql_root_password }}"
+        login_user: "{{ mysql_admin_user }}"
+        login_password: "{{ mysql_admin_password }}"
 
-    - name: Restartuoju MySQL
+    - name: Restart MySQL service
       service:
-        name: mysql
+        name: "{{ 'mysqld' if ansible_os_family == 'RedHat' else 'mysql' }}"
         state: restarted
