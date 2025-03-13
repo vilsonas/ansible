@@ -40,7 +40,7 @@
         login_user: root
         login_password: "{{ mysql_root_password }}"
 
-    - name: Create new MySQL admin user
+    - name: Sukurti nauja admin vartotoja
       mysql_user:
         name: "{{ mysql_admin_user }}"
         password: "{{ mysql_admin_password }}"
@@ -50,21 +50,21 @@
         login_user: root
         login_password: "{{ mysql_root_password }}"
 
-    - name: Remove root login completely from MySQL
+    - name: Panaikinti root
       mysql_user:
         name: root
         state: absent
         login_user: "{{ mysql_admin_user }}"
         login_password: "{{ mysql_admin_password }}"
 
-    - name: Create MySQL database
+    - name: Kurti MySQL duombaze
       mysql_db:
         name: "{{ db_name }}"
         state: present
         login_user: "{{ mysql_admin_user }}"
         login_password: "{{ mysql_admin_password }}"
 
-    - name: Create MySQL user with restricted access
+    - name: Kurti MySQL duombazes vartotoją su tinklo apribojomu
       mysql_user:
         name: "{{ db_user }}"
         password: "{{ db_password }}"
@@ -74,7 +74,7 @@
         login_user: "{{ mysql_admin_user }}"
         login_password: "{{ mysql_admin_password }}"
 
-    - name: Restart MySQL service
+    - name: Restart MySQL
       service:
         name: "{{ 'mysqld' if ansible_os_family == 'RedHat' else 'mysql' }}"
         state: restarted
