@@ -1,5 +1,5 @@
 - name: Install and configure MySQL
-  hosts: all
+  hosts: db
   become: yes
   vars:
     mysql_root_password: "RootPass123!"
