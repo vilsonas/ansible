@@ -1,5 +1,6 @@
-- name: Konfiguruoju Apache su Let's encrypt botu
-  hosts: web
+---
+- name: Setup Apache Web Server with SSL (Let's Encrypt)
+  hosts: all
   become: yes
   tasks:
     - name: Update package cache (Debian-based systems)
@@ -7,7 +8,7 @@
         update_cache: yes
       when: ansible_os_family == "Debian"
 
-    - name: Install Apache2 and required modules
+    - name: Install Apache2 and required packages
       package:
         name:
           - apache2
@@ -15,12 +16,24 @@
           - python3-certbot-apache
         state: present
 
-    - name: Virtualaus hosto konfiguracijos failas
+    - name: Ensure Apache is running before requesting SSL certificate
+      service:
+        name: apache2
+        state: started
+        enabled: yes
+
+    - name: Obtain SSL certificate from Let's Encrypt
+      command: certbot --apache --non-interactive --agree-tos --email admin@192.168.195.103 -d 192.168.195.103
+      args:
+        creates: /etc/letsencrypt/live/192.168.195.103/fullchain.pem
+      notify: Restart Apache
+
+    - name: Create Apache Virtual Host configuration file with SSL
       copy:
         dest: /etc/apache2/sites-available/000-default.conf
         content: |
           <VirtualHost *:80>
-              ServerName example.com
+              ServerName 192.168.195.103
               Redirect permanent / https://192.168.195.103/
           </VirtualHost>
           <VirtualHost *:443>
@@ -31,6 +44,7 @@
               SSLCertificateKeyFile /etc/letsencrypt/live/192.168.195.103/privkey.pem
           </VirtualHost>
         mode: '0644'
+      notify: Restart Apache
 
     - name: Enable Apache SSL module
       command: a2enmod ssl
@@ -40,24 +54,18 @@
       command: a2enmod rewrite
       notify: Restart Apache
 
-    - name: Svetaines configo uzkelimas
+    - name: Enable the new site configuration
       command: a2ensite 000-default.conf
       notify: Restart Apache
 
-    - name: SSL su Let's Encrypt
-      command: certbot --apache --non-interactive --agree-tos --email admin@example.com -d example.com
-      args:
-        creates: /etc/letsencrypt/live/192.168.195.103/fullchain.pem
-      notify: Restart Apache
-
-    - name: Automatinis SSL atsinaujinimas
+    - name: Setup automatic SSL renewal
       cron:
         name: "Renew Let's Encrypt SSL"
         job: "certbot renew --quiet"
         state: present
         special_time: daily
 
-    - name: Pavyzdinis index.html failas
+    - name: Create a sample index.html file
       copy:
         dest: /var/www/html/index.html
         content: "<h1>Welcome to Apache Web Server with SSL</h1>"
