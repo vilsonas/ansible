@@ -35,13 +35,13 @@
         priv: "*.*:ALL,GRANT"
       ignore_errors: yes
 
-    - name: Remove MySQL root remote access
-      mysql_user:
-        name: root
-        host: "%"
-        state: absent
-        login_user: root
-        login_password: "{{ mysql_root_password }}"
+ #   - name: Remove MySQL root remote access
+  #    mysql_user:
+   #     name: root
+    #    host: "%"
+     #   state: absent
+      #  login_user: root
+       # login_password: "{{ mysql_root_password }}"
 
     - name: Create new MySQL admin user
       mysql_user:
@@ -53,12 +53,12 @@
         login_user: root
         login_password: "{{ mysql_root_password }}"
 
-    - name: Remove root login completely from MySQL
-      mysql_user:
-        name: root
-        state: absent
-        login_user: "{{ mysql_admin_user }}"
-        login_password: "{{ mysql_admin_password }}"
+#    - name: Remove root login completely from MySQL
+ #     mysql_user:
+  #      name: root
+   #     state: absent
+    #    login_user: "{{ mysql_admin_user }}"
+     #   login_password: "{{ mysql_admin_password }}"
 
     - name: Create MySQL database
       mysql_db:
