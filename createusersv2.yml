@@ -40,22 +40,13 @@
         mode: '0600'
       loop: "{{ users }}"
 
-    - name: Slurpo public SSH key vartotojams
-      slurp:
-        src: "/home/{{ item.name }}/.ssh/id_rsa.pub"
-      register: public_keys
-      loop: "{{ users }}"
-
-    - name: Pridedu SSH raktus i authorized_keys
+    - name: Pridedu SSH viešuosius raktus į authorized_keys
       authorized_key:
         user: "{{ item.name }}"
         state: present
-        key: "{{ item.content | b64decode }}"
+        key: "{{ lookup('file', '/home/' + item.name + '/.ssh/id_rsa.pub') }}"
+        path: "/home/{{ item.name }}/.ssh/authorized_keys"
       loop: "{{ users }}"
-      loop_control:
-        loop_var: item
-        extended: yes
-      when: public_keys.results is defined and public_keys.results | length > 0
 
     - name: Sudo be passwordo
       copy:
