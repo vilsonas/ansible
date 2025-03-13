@@ -1,4 +1,4 @@
-- name: Manage Users and SSH Keys
+- name: Vartotoju kurimas ir SSH raktu generavimas
   hosts: test
   become: yes
   become_method: sudo
