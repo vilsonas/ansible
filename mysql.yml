@@ -5,7 +5,7 @@
     mysql_root_password: "RootPass123!"
     db_name: "mydatabase"
     db_user: "dbuser"
-    db_password: "UserPass123!"
+    db_password: "slaptazodis444!"
     allowed_subnet: "192.168.189.%"
 
   tasks:
