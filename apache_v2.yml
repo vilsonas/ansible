@@ -1,5 +1,5 @@
 - name: Konfiguruoju Apache su Let's encrypt botu
-  hosts: all
+  hosts: web
   become: yes
   tasks:
     - name: Update package cache (Debian-based systems)
