@@ -2,7 +2,7 @@
   hosts: db
   become: yes
   vars_files:
-    - secrect.yml
+    - vilius/secrect.yml
   tasks:
     - name: Install MySQL
       package:
