@@ -2,15 +2,7 @@
 - name: Install and configure MySQL securely
   hosts: db
   become: yes
-  vars:
-    mysql_root_password: "RootPass123!"
-    mysql_admin_user: "mysqladmin"
-    mysql_admin_password: "AdminPass123!"
-    db_name: "mydatabase"
-    db_user: "dbuser"
-    db_password: "UserPass123!"
-    allowed_subnet: "192.168.189.%"
-
+  
   tasks:
     - name: Install required Python packages for MySQL
       package:
