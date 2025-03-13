@@ -3,12 +3,12 @@
   hosts: web
   become: yes
   tasks:
-    - name: Update package cache (Debian-based systems)
+    - name: Update cache
       apt:
         update_cache: yes
       when: ansible_os_family == "Debian"
 
-    - name: Install Apache2 and required modules
+    - name: Install Apache2 ir kitus modulius
       package:
         name:
           - apache2
@@ -17,7 +17,7 @@
           - python3-certbot-apache
         state: present
 
-    - name: Create Apache Virtual Host configuration file
+    - name: Sukuriame apache2 config failiuką ir redirectinam
       copy:
         dest: /etc/apache2/sites-available/000-default.conf
         content: |
@@ -42,11 +42,11 @@
       command: a2enmod rewrite
       notify: Restart Apache
 
-    - name: Enable the new site configuration
+    - name: Uzkeliu configa
       command: a2ensite 000-default.conf
       notify: Restart Apache
 
-    - name: Obtain SSL certificate from Let's Encrypt
+    - name: SSL lets encrypt
       command: certbot --apache --non-interactive --agree-tos --email admin@example.com -d example.com
       args:
         creates: /etc/letsencrypt/live/example.com/fullchain.pem
