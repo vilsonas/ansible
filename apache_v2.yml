@@ -25,7 +25,7 @@
         openssl req -x509 -nodes -days 365 -newkey rsa:2048
         -keyout /etc/ssl/private/apache-selfsigned.key
         -out /etc/ssl/certs/apache-selfsigned.crt
-        -subj "/C=US/ST=State/L=City/O=Organization/CN=192.168.195.103"
+        -subj "/C=US/ST=State/L=City/O=Organization/CN=192.168.195.104"
       args:
         creates: /etc/ssl/certs/apache-selfsigned.crt
 
@@ -34,11 +34,11 @@
         dest: /etc/apache2/sites-available/000-default.conf
         content: |
           <VirtualHost *:80>
-              ServerName 192.168.195.103
-              Redirect permanent / https://192.168.195.103/
+              ServerName 192.168.195.104
+              Redirect permanent / https://192.168.195.104/
           </VirtualHost>
           <VirtualHost *:443>
-              ServerName 192.168.195.103
+              ServerName 192.168.195.104
               DocumentRoot /var/www/html
               SSLEngine on
               SSLCertificateFile /etc/ssl/certs/apache-selfsigned.crt
