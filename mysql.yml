@@ -1,6 +1,6 @@
 ---
 - name: Install and configure MySQL securely
-  hosts: db
+  hosts: web
   become: yes
   
   tasks:
