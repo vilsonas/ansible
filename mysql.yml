@@ -1,8 +1,8 @@
 - name: Instaliuoju ir konfiguruoju MySQL
   hosts: db
   become: yes
-  vars_files:
-  - group_vars/secrets.yml
+ # vars_files:
+ # - group_vars/secrets.yml
   
   tasks:
     - name: Install MySQL
