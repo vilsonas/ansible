@@ -1,15 +1,15 @@
 ---
 - name: Install and configure MySQL securely
-  hosts: web
+  hosts: db
   become: yes
   
   tasks:
-    - name: Install required Python packages for MySQL
+    - name: Install MySQL reikalingus paketus
       package:
         name:
           - python3-pip
           - python3-mysqldb
-          - python3-pymysql   # ✅ Use APT to install PyMySQL
+          - python3-pymysql   
         state: present
 
     - name: Install MySQL Server
@@ -17,13 +17,13 @@
         name: "{{ 'mysql-server' if ansible_os_family == 'RedHat' else 'mariadb-server' }}"
         state: present
 
-    - name: Start and enable MySQL service
+    - name: Start MySQL
       service:
         name: "{{ 'mysqld' if ansible_os_family == 'RedHat' else 'mysql' }}"
         state: started
         enabled: yes
         
-    - name: Set MySQL root password and remove anonymous users (via socket)
+    - name: Root slaptažodis
       mysql_user:
         name: root
         password: "{{ mysql_root_password }}"
@@ -32,13 +32,13 @@
         priv: "*.*:ALL,GRANT"
       ignore_errors: yes
 
-#    - name: Remove MySQL root remote access
- #     mysql_user:
-  #      name: root
-   #     host: "%"
-    #    state: absent
-     #   login_user: root
-      #  login_password: "{{ mysql_root_password }}"
+    - name: Panaikinti root
+      mysql_user:
+        name: root
+        host: "%"
+        state: absent
+        login_user: root
+        login_password: "{{ mysql_root_password }}"
 
     - name: Create new MySQL admin user
       mysql_user:
@@ -50,12 +50,12 @@
         login_user: root
         login_password: "{{ mysql_root_password }}"
 
-#    - name: Remove root login completely from MySQL
- #     mysql_user:
-  #      name: root
-   #     state: absent
-    #    login_user: "{{ mysql_admin_user }}"
-     #   login_password: "{{ mysql_admin_password }}"
+    - name: Remove root login completely from MySQL
+      mysql_user:
+        name: root
+        state: absent
+        login_user: "{{ mysql_admin_user }}"
+        login_password: "{{ mysql_admin_password }}"
 
     - name: Create MySQL database
       mysql_db:
