@@ -2,6 +2,7 @@
 - name: Install and configure MySQL securely
   hosts: db
   become: yes
+  vars:
 
   tasks:
     - name: Install required Python packages for MySQL
@@ -9,11 +10,7 @@
         name:
           - python3-pip
           - python3-mysqldb
-        state: present
-
-    - name: Install PyMySQL
-      pip:
-        name: pymysql
+          - python3-pymysql   # ✅ Use APT to install PyMySQL
         state: present
 
     - name: Install MySQL Server
