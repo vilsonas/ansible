@@ -1,26 +1,26 @@
-- name: Setup Apache Web Server with Self-Signed SSL
+- name: Konfiguracija apache su SSL
   hosts: db
   become: yes
   tasks:
-    - name: Update package cache (Debian-based systems)
+    - name: Update package cache 
       apt:
         update_cache: yes
       when: ansible_os_family == "Debian"
 
-    - name: Install Apache2 and OpenSSL
+    - name: Install apache2 ir openssl 
       package:
         name:
           - apache2
           - openssl
         state: present
 
-    - name: Ensure Apache is running before configuring SSL
+    - name: Apache start
       service:
         name: apache2
         state: started
         enabled: yes
 
-    - name: Generate a self-signed SSL certificate
+    - name: Generuojam SSL
       command: >
         openssl req -x509 -nodes -days 365 -newkey rsa:2048
         -keyout /etc/ssl/private/apache-selfsigned.key
@@ -29,7 +29,7 @@
       args:
         creates: /etc/ssl/certs/apache-selfsigned.crt
 
-    - name: Create Apache Virtual Host configuration file with SSL
+    - name: Apache virtual hostai
       copy:
         dest: /etc/apache2/sites-available/000-default.conf
         content: |
@@ -47,22 +47,22 @@
         mode: '0644'
       notify: Restart Apache
 
-    - name: Enable Apache SSL module
+    - name: Enable Apache SSL 
       command: a2enmod ssl
       notify: Restart Apache
 
-    - name: Enable Apache Rewrite module
+    - name: Enable Apache Rewrite 
       command: a2enmod rewrite
       notify: Restart Apache
 
-    - name: Enable the new site configuration
+    - name: Enable new site config
       command: a2ensite 000-default.conf
       notify: Restart Apache
 
-    - name: Create a sample index.html file
+    - name: Pavyzdinis index
       copy:
         dest: /var/www/html/index.html
-        content: "<h1>Welcome to Apache Web Server with Self-Signed SSL</h1>"
+        content: "<h1>Apache testas su SSL</h1>"
         mode: '0644'
 
   handlers:
