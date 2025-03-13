@@ -1,6 +1,6 @@
 ---
 - name: Setup Apache Web Server with SSL (Let's Encrypt)
-  hosts: all
+  hosts: web
   become: yes
   tasks:
     - name: Update package cache (Debian-based systems)
