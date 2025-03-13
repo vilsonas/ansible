@@ -11,12 +11,12 @@
   tasks:
     - name: Install MySQL
       package:
-        name: "{{ 'mysql-server' if ansible_os_family == 'RedHat' else 'mariadb-server' }}"
+        name: mariadb-server
         state: present
 
     - name: Start MySQL
       service:
-        name: "{{ 'mysqld' if ansible_os_family == 'RedHat' else 'mysql' }}"
+        name: mysql
         state: started
         enabled: yes
 
@@ -49,5 +49,5 @@
 
     - name: Restartuoju MySQL
       service:
-        name: "{{ 'mysqld' if ansible_os_family == 'RedHat' else 'mysql' }}"
+        name: mysql
         state: restarted
