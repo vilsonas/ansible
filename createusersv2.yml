@@ -40,7 +40,7 @@
         mode: '0600'
       loop: "{{ users }}"
 
-    - name: 
+    - name: Tikrinu ar SSH raktai sukurti
       file:
         path: "/home/{{ item.name }}/.ssh"
         state: directory
