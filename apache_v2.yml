@@ -1,0 +1,72 @@
+---
+- name: Setup Apache Web Server with SSL (Let's Encrypt)
+  hosts: web
+  become: yes
+  tasks:
+    - name: Update package cache (Debian-based systems)
+      apt:
+        update_cache: yes
+      when: ansible_os_family == "Debian"
+
+    - name: Install Apache2 and required modules
+      package:
+        name:
+          - apache2
+          - libapache2-mod-ssl
+          - certbot
+          - python3-certbot-apache
+        state: present
+
+    - name: Create Apache Virtual Host configuration file
+      copy:
+        dest: /etc/apache2/sites-available/000-default.conf
+        content: |
+          <VirtualHost *:80>
+              ServerName example.com
+              Redirect permanent / https://example.com/
+          </VirtualHost>
+          <VirtualHost *:443>
+              ServerName example.com
+              DocumentRoot /var/www/html
+              SSLEngine on
+              SSLCertificateFile /etc/letsencrypt/live/example.com/fullchain.pem
+              SSLCertificateKeyFile /etc/letsencrypt/live/example.com/privkey.pem
+          </VirtualHost>
+        mode: '0644'
+
+    - name: Enable Apache SSL module
+      command: a2enmod ssl
+      notify: Restart Apache
+
+    - name: Enable Apache Rewrite module
+      command: a2enmod rewrite
+      notify: Restart Apache
+
+    - name: Enable the new site configuration
+      command: a2ensite 000-default.conf
+      notify: Restart Apache
+
+    - name: Obtain SSL certificate from Let's Encrypt
+      command: certbot --apache --non-interactive --agree-tos --email admin@example.com -d example.com
+      args:
+        creates: /etc/letsencrypt/live/example.com/fullchain.pem
+      notify: Restart Apache
+
+    - name: Setup automatic SSL renewal
+      cron:
+        name: "Renew Let's Encrypt SSL"
+        job: "certbot renew --quiet"
+        state: present
+        special_time: daily
+
+    - name: Create a sample index.html file
+      copy:
+        dest: /var/www/html/index.html
+        content: "<h1>Welcome to Apache Web Server with SSL</h1>"
+        mode: '0644'
+
+  handlers:
+    - name: Restart Apache
+      service:
+        name: apache2
+        state: restarted
