@@ -1,13 +1,8 @@
 - name: Instaliuoju ir konfiguruoju MySQL
   hosts: db
   become: yes
-  vars:
-    mysql_root_password: "RootPass123!"
-    db_name: "mydatabase"
-    db_user: "dbuser"
-    db_password: "slaptazodis444!"
-    allowed_subnet: "192.168.189.%"
-
+  vars_files:
+    - secrect.yml
   tasks:
     - name: Install MySQL
       package:
