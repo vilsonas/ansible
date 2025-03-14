@@ -1,0 +1,48 @@
+---
+- name: Add users and secure SSH
+  hosts: test
+  become: yes
+  tasks:
+    - name: Add users
+      ansible.builtin.user:
+        name: "{{ item.username }}"
+        shell: /bin/bash
+        create_home: yes
+      loop:
+        - { username: "bandomasis1" }
+        - { username: "bandomasis2" }
+
+    - name: Ensure .ssh directory exists
+      ansible.builtin.file:
+        path: "/home/{{ item.username }}/.ssh"
+        state: directory
+        owner: "{{ item.username }}"
+        group: "{{ item.username }}"
+        mode: '0700'
+      loop:
+        - { username: "bandomasis1" }
+        - { username: "bandomasis2" }
+
+    - name: Add SSH keys to authorized_keys
+      ansible.builtin.copy:
+        content: "{{ item.ssh_key }}"
+        dest: "/home/{{ item.username }}/.ssh/authorized_keys"
+        owner: "{{ item.username }}"
+        group: "{{ item.username }}"
+        mode: '0600'
+      loop:
+        - { username: "bandomasis1", ssh_key: "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABgQCvqaNTwDb8eEc9goTMRflNuJAn6OfCllMQo2NzhYkAJ56joQj2s8WU8OpFGyNls2aV5XCSo>" }
+        - { username: "bandomasis2", ssh_key: "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABgQDuNyN+uiug69pTSCpTsW/qbTmw3LHnqRZERsnbjq04CGq9r5/oP+iTKm68UbkxRCDF0SuXH74S+wnppU+xeRQTcleTxRqVOdEcgX3uz5e1y2dr+VaxWYD1icxC09NEfqGRti/rzgaWUVQ4UvEgkjjxp7ATpBkPFvs99Mz136nC>" }
+
+    - name: Disable password authentication in SSH
+      ansible.builtin.lineinfile:
+        path: /etc/ssh/sshd_config
+        regexp: '^PasswordAuthentication'
+        line: 'PasswordAuthentication no'
+      notify: Restart SSH
+
+  handlers:
+    - name: Restart SSH
+      ansible.builtin.service:
+        name: sshd
+        state: restarted
