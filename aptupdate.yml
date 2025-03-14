@@ -1,0 +1,9 @@
+- name: apt update
+  hosts: test
+  become: true
+  become_method: sudo
+  tasks:
+- name: Update all Debian/Ubuntu packages to their latest version
+  ansible.builtin.apt:
+    name: "*"
+    state: latest
