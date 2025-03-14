@@ -1,5 +1,5 @@
 ---
-- name: Install and configure MySQL securely
+- name: Install MySQL
   hosts: db
   become: yes
   
