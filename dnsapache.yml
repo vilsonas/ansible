@@ -1,20 +1,22 @@
 ---
-- name: Configure Apache with SSL and BIND9 DNS for test.test.lt
+- name: Configure Apache with SSL for test.test.lt
   hosts: test
   become: yes
   vars:
     domain: "test.test.lt"
-    ip_address: "192.168.195.102"
     ssl_cert_path: "/etc/ssl/certs/{{ domain }}.crt"
     ssl_key_path: "/etc/ssl/private/{{ domain }}.key"
     ssl_chain_path: "/etc/ssl/certs/{{ domain }}-chain.crt"  # Adjust if necessary
-
+    dns_zone: "test.test.lt"
+    dns_forwarder: "8.8.8.8"  # Google DNS, adjust if necessary
   tasks:
-    - name: Install Apache and SSL module
+
+    - name: Install required packages
       apt:
         name:
           - apache2
           - openssl
+          - bind9
         state: present
         update_cache: yes
 
@@ -24,7 +26,26 @@
         a2enmod rewrite
       notify: Restart Apache
 
-    - name: Configure Apache VirtualHost for HTTP (Redirect to HTTPS)
+    - name: Generate a Private Key
+      command: openssl genrsa -out /etc/ssl/private/{{ domain }}.key 2048
+      args:
+        creates: /etc/ssl/private/{{ domain }}.key
+
+    - name: Generate a Certificate Signing Request (CSR)
+      command: openssl req -new -key /etc/ssl/private/{{ domain }}.key -out /etc/ssl/certs/{{ domain }}.csr
+      args:
+        creates: /etc/ssl/certs/{{ domain }}.csr
+
+    - name: Generate a Self-Signed Certificate
+      command: openssl x509 -req -days 365 -in /etc/ssl/certs/{{ domain }}.csr -signkey /etc/ssl/private/{{ domain }}.key -out /etc/ssl/certs/{{ domain }}.crt
+      args:
+        creates: /etc/ssl/certs/{{ domain }}.crt
+
+    - name: Create a Certificate Chain File (Optional)
+      command: cat /path/to/intermediate.crt >> /etc/ssl/certs/{{ domain }}-chain.crt
+      when: intermediate_cert_exists  # Add a condition if you have intermediate certificates
+
+    - name: Configure Apache VirtualHost for HTTP
       copy:
         dest: "/etc/apache2/sites-available/{{ domain }}.conf"
         content: |
@@ -63,67 +84,57 @@
         state: started
         enabled: yes
 
+    - name: Configure BIND with Forwarders
+      copy:
+        dest: "/etc/bind/named.conf.options"
+        content: |
+          options {
+              directory "/var/cache/bind";
+
+              // Forwarders
+              forwarders {
+                  {{ dns_forwarder }};
+              };
+
+              dnssec-validation auto;
+
+              auth-nxdomain no; # conform to RFC1035
+              listen-on-v6 { any; };
+          };
+
+    - name: Configure BIND Zone File
+      copy:
+        dest: "/etc/bind/named.conf.local"
+        content: |
+          zone "{{ dns_zone }}" {
+              type master;
+              file "/etc/bind/db.{{ dns_zone }}";
+          };
+
+    - name: Create BIND Zone Database File
+      copy:
+        dest: "/etc/bind/db.{{ dns_zone }}"
+        content: |
+          $TTL    604800
+          @       IN      SOA     {{ domain }}. root.{{ domain }}. (
+                                2         ; Serial
+                          604800         ; Refresh
+                           86400         ; Retry
+                         2419200         ; Expire
+                          604800 )       ; Negative Cache TTL
+          ;
+          @       IN      NS      ns.{{ domain }}.
+          @       IN      A       127.0.0.1
+          ns      IN      A       127.0.0.1
+
+    - name: Restart BIND service
+      service:
+        name: bind9
+        state: restarted
+        enabled: yes
+
   handlers:
     - name: Restart Apache
       service:
         name: apache2
-        state: restarted
-
-- name: Configure BIND9 DNS Server
-  hosts: dnsservers
-  become: yes
-  vars:
-    domain: "test.test.lt"
-    ip_address: "192.168.195.102"
-
-  tasks:
-    - name: Install BIND9
-      apt:
-        name: bind9
-        state: present
-        update_cache: yes
-
-    - name: Configure named.conf.local for domain
-      copy:
-        dest: "/etc/bind/named.conf.local"
-        content: |
-          zone "{{ domain }}" {
-              type master;
-              file "/etc/bind/zones/db.{{ domain }}";
-          };
-      notify: Restart BIND9
-
-    - name: Create BIND zone directory
-      file:
-        path: "/etc/bind/zones"
-        state: directory
-
-    - name: Configure BIND zone file
-      copy:
-        dest: "/etc/bind/zones/db.{{ domain }}"
-        content: |
-          $TTL 86400
-          @   IN  SOA ns1.{{ domain }}. admin.{{ domain }}. (
-                      2024031401 ; Serial
-                      3600       ; Refresh
-                      1800       ; Retry
-                      604800     ; Expire
-                      86400 )    ; Minimum TTL
-
-          @       IN  NS  ns1.{{ domain }}.
-          @       IN  A   {{ ip_address }}
-          ns1     IN  A   {{ ip_address }}
-          www     IN  A   {{ ip_address }}
-      notify: Restart BIND9
-
-    - name: Ensure BIND9 is running and enabled
-      service:
-        name: bind9
-        state: started
-        enabled: yes
-
-  handlers:
-    - name: Restart BIND9
-      service:
-        name: bind9
         state: restarted
