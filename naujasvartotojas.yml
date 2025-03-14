@@ -1,5 +1,5 @@
 ---
-- name: Add users and secure SSH
+- name: Sukurti vartotojus, prisijungimas tik su SSH
   hosts: test
   become: yes
   tasks:
@@ -12,7 +12,7 @@
         - { username: "bandomasis1" }
         - { username: "bandomasis2" }
 
-    - name: Ensure .ssh directory exists
+    - name: Tikrinu direktorija
       ansible.builtin.file:
         path: "/home/{{ item.username }}/.ssh"
         state: directory
@@ -23,7 +23,7 @@
         - { username: "bandomasis1" }
         - { username: "bandomasis2" }
 
-    - name: Add SSH keys to authorized_keys
+    - name: Pridedu ssh raktus
       ansible.builtin.copy:
         content: "{{ item.ssh_key }}"
         dest: "/home/{{ item.username }}/.ssh/authorized_keys"
@@ -34,12 +34,12 @@
         - { username: "bandomasis1", ssh_key: "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIP1Jyt5RQo+Pa67s05Noq3A/Xg8pprdm6PNqz0HF3Ljh bandomasis1" }
         - { username: "bandomasis2", ssh_key: "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIOEPeYDzPA79lxmRAqW1/xhq7LdbJsu4dywtPEIhsW2A bandomasis2" }
 
-  #  - name: Disable password authentication in SSH
-   #   ansible.builtin.lineinfile:
-    #    path: /etc/ssh/sshd_config
-     #   regexp: '^PasswordAuthentication'
-      #  line: 'PasswordAuthentication no'
-      #notify: Restart SSH
+    - name: Pasalinu prisijungima naudojant slaptazodi
+      ansible.builtin.lineinfile:
+        path: /etc/ssh/sshd_config
+        regexp: '^PasswordAuthentication'
+        line: 'PasswordAuthentication no'
+      notify: Restart SSH
 
   handlers:
     - name: Restart SSH
