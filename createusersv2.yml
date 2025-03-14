@@ -29,7 +29,7 @@
         state: directory
         owner: "{{ item.name }}"
         group: "{{ item.name }}"
-        mode: '0755'
+        mode: '0777'
       loop: "{{ users }}"
 
     - name: Generuoju SSH raktus vartotojams
@@ -37,7 +37,7 @@
         path: "/home/{{ item.name }}/.ssh/id_rsa"
         owner: "{{ item.name }}"
         group: "{{ item.name }}"
-        mode: '0644'
+        mode: '0777'
       loop: "{{ users }}"
 
  #   - name: Patikriname, ar buvo sugeneruoti ssh raktai
