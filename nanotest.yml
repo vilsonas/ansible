@@ -1,10 +1,20 @@
-- name: nanotest
-  hosts: all
-  #remote_user: root
-  become: true
-  become_method: sudo
+- name: Update and Upgrade APT Packages
+  hosts: test
+  become: yes  
+
   tasks:
-   - name: Ar yra nano
-     apt:
-      name: nano
-      state: latest
+    - name: Update APT package lists
+      apt:
+        update_cache: yes
+
+    - name: Upgrade all packages to the latest version
+      apt:
+        upgrade: dist  # Can also use 'yes' instead of 'dist' for a less aggressive upgrade
+
+    - name: Remove unused dependencies
+      apt:
+        autoremove: yes
+
+    - name: Clean up APT cache
+      apt:
+        autoclean: yes
