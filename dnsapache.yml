@@ -1,21 +1,21 @@
 ---
-- name: Install and configure Apache with SSL for test.test.lt
-  hosts: test
+- name: Configure Apache with SSL and BIND9 DNS for test.test.lt
+  hosts: webservers
   become: yes
   vars:
     domain: "test.test.lt"
+    ip_address: "192.168.195.102"
     ssl_cert_path: "/etc/ssl/certs/{{ domain }}.crt"
     ssl_key_path: "/etc/ssl/private/{{ domain }}.key"
-    use_letsencrypt: false  # Set to true if you want to use Let's Encrypt
+    ssl_chain_path: "/etc/ssl/certs/{{ domain }}-chain.crt"  # Adjust if necessary
 
   tasks:
-    - name: Install required packages
+    - name: Install Apache and SSL module
       apt:
         name:
           - apache2
           - openssl
-          - certbot
-          - python3-certbot-apache
+          - libapache2-mod-ssl
         state: present
         update_cache: yes
 
@@ -23,21 +23,6 @@
       shell: |
         a2enmod ssl
         a2enmod rewrite
-      notify: Restart Apache
-
-    - name: Generate a self-signed SSL certificate (if Let's Encrypt is not used)
-      command: >
-        openssl req -x509 -nodes -days 365 -newkey rsa:2048
-        -keyout {{ ssl_key_path }}
-        -out {{ ssl_cert_path }}
-        -subj "/C=LT/ST=Test/L=Test/O=Test/OU=IT/CN={{ domain }}"
-      args:
-        creates: "{{ ssl_cert_path }}"
-      when: not use_letsencrypt
-
-    - name: Obtain Let's Encrypt SSL certificate
-      command: certbot --apache -n --agree-tos --email admin@{{ domain }} -d {{ domain }}
-      when: use_letsencrypt
       notify: Restart Apache
 
     - name: Configure Apache VirtualHost for HTTP (Redirect to HTTPS)
@@ -59,6 +44,7 @@
               SSLEngine on
               SSLCertificateFile {{ ssl_cert_path }}
               SSLCertificateKeyFile {{ ssl_key_path }}
+              SSLCertificateChainFile {{ ssl_chain_path }}
               DocumentRoot /var/www/html
               <Directory /var/www/html>
                   AllowOverride All
@@ -82,4 +68,63 @@
     - name: Restart Apache
       service:
         name: apache2
+        state: restarted
+
+- name: Configure BIND9 DNS Server
+  hosts: dnsservers
+  become: yes
+  vars:
+    domain: "test.test.lt"
+    ip_address: "192.168.195.102"
+
+  tasks:
+    - name: Install BIND9
+      apt:
+        name: bind9
+        state: present
+        update_cache: yes
+
+    - name: Configure named.conf.local for domain
+      copy:
+        dest: "/etc/bind/named.conf.local"
+        content: |
+          zone "{{ domain }}" {
+              type master;
+              file "/etc/bind/zones/db.{{ domain }}";
+          };
+      notify: Restart BIND9
+
+    - name: Create BIND zone directory
+      file:
+        path: "/etc/bind/zones"
+        state: directory
+
+    - name: Configure BIND zone file
+      copy:
+        dest: "/etc/bind/zones/db.{{ domain }}"
+        content: |
+          $TTL 86400
+          @   IN  SOA ns1.{{ domain }}. admin.{{ domain }}. (
+                      2024031401 ; Serial
+                      3600       ; Refresh
+                      1800       ; Retry
+                      604800     ; Expire
+                      86400 )    ; Minimum TTL
+
+          @       IN  NS  ns1.{{ domain }}.
+          @       IN  A   {{ ip_address }}
+          ns1     IN  A   {{ ip_address }}
+          www     IN  A   {{ ip_address }}
+      notify: Restart BIND9
+
+    - name: Ensure BIND9 is running and enabled
+      service:
+        name: bind9
+        state: started
+        enabled: yes
+
+  handlers:
+    - name: Restart BIND9
+      service:
+        name: bind9
         state: restarted
