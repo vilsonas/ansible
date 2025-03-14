@@ -40,10 +40,10 @@
         mode: '0644'
       loop: "{{ users }}"
 
-    - name: Patikriname, ar buvo sugeneruoti ssh raktai
-      stat:
-        path: "/home/{{ item.name }}/.ssh/id_rsa.pub"
-      register: ssh_key
+ #   - name: Patikriname, ar buvo sugeneruoti ssh raktai
+  #    stat:
+   #     path: "/home/{{ item.name }}/.ssh/id_rsa.pub"
+    #  register: ssh_key
 
     - name: Pridedu SSH viešuosius raktus į authorized_keys
       authorized_key:
