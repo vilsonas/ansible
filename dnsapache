@@ -1,0 +1,130 @@
+---
+- name: Configure Apache with SSL and BIND9 DNS for test.test.lt
+  hosts: test
+  become: yes
+  vars:
+    domain: "test.test.lt"
+    ip_address: "192.168.195.102"
+    ssl_cert_path: "/etc/ssl/certs/{{ domain }}.crt"
+    ssl_key_path: "/etc/ssl/private/{{ domain }}.key"
+    ssl_chain_path: "/etc/ssl/certs/{{ domain }}-chain.crt"  # Adjust if necessary
+
+  tasks:
+    - name: Install Apache and SSL module
+      apt:
+        name:
+          - apache2
+          - openssl
+          - libapache2-mod-ssl
+        state: present
+        update_cache: yes
+
+    - name: Enable required Apache modules
+      shell: |
+        a2enmod ssl
+        a2enmod rewrite
+      notify: Restart Apache
+
+    - name: Configure Apache VirtualHost for HTTP (Redirect to HTTPS)
+      copy:
+        dest: "/etc/apache2/sites-available/{{ domain }}.conf"
+        content: |
+          <VirtualHost *:80>
+              ServerName {{ domain }}
+              Redirect permanent / https://{{ domain }}/
+          </VirtualHost>
+      notify: Restart Apache
+
+    - name: Configure Apache VirtualHost for HTTPS
+      copy:
+        dest: "/etc/apache2/sites-available/{{ domain }}-ssl.conf"
+        content: |
+          <VirtualHost *:443>
+              ServerName {{ domain }}
+              SSLEngine on
+              SSLCertificateFile {{ ssl_cert_path }}
+              SSLCertificateKeyFile {{ ssl_key_path }}
+              SSLCertificateChainFile {{ ssl_chain_path }}
+              DocumentRoot /var/www/html
+              <Directory /var/www/html>
+                  AllowOverride All
+              </Directory>
+          </VirtualHost>
+      notify: Restart Apache
+
+    - name: Enable Apache site configurations
+      shell: |
+        a2ensite {{ domain }}.conf
+        a2ensite {{ domain }}-ssl.conf
+      notify: Restart Apache
+
+    - name: Ensure Apache is running and enabled
+      service:
+        name: apache2
+        state: started
+        enabled: yes
+
+  handlers:
+    - name: Restart Apache
+      service:
+        name: apache2
+        state: restarted
+
+- name: Configure BIND9 DNS Server
+  hosts: dnsservers
+  become: yes
+  vars:
+    domain: "test.test.lt"
+    ip_address: "192.168.195.102"
+
+  tasks:
+    - name: Install BIND9
+      apt:
+        name: bind9
+        state: present
+        update_cache: yes
+
+    - name: Configure named.conf.local for domain
+      copy:
+        dest: "/etc/bind/named.conf.local"
+        content: |
+          zone "{{ domain }}" {
+              type master;
+              file "/etc/bind/zones/db.{{ domain }}";
+          };
+      notify: Restart BIND9
+
+    - name: Create BIND zone directory
+      file:
+        path: "/etc/bind/zones"
+        state: directory
+
+    - name: Configure BIND zone file
+      copy:
+        dest: "/etc/bind/zones/db.{{ domain }}"
+        content: |
+          $TTL 86400
+          @   IN  SOA ns1.{{ domain }}. admin.{{ domain }}. (
+                      2024031401 ; Serial
+                      3600       ; Refresh
+                      1800       ; Retry
+                      604800     ; Expire
+                      86400 )    ; Minimum TTL
+
+          @       IN  NS  ns1.{{ domain }}.
+          @       IN  A   {{ ip_address }}
+          ns1     IN  A   {{ ip_address }}
+          www     IN  A   {{ ip_address }}
+      notify: Restart BIND9
+
+    - name: Ensure BIND9 is running and enabled
+      service:
+        name: bind9
+        state: started
+        enabled: yes
+
+  handlers:
+    - name: Restart BIND9
+      service:
+        name: bind9
+        state: restarted
