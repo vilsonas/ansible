@@ -31,7 +31,7 @@
         group: "{{ item.username }}"
         mode: '0600'
       loop:
-        - { username: "bandomasis1", ssh_key: "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABgQCvqaNTwDb8eEc9goTMRflNuJAn6OfCllMQo2NzhYkAJ56joQj2s8WU8OpFGyNls2aV5XCSo>" }
+        - { username: "bandomasis1", ssh_key: "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIP1Jyt5RQo+Pa67s05Noq3A/Xg8pprdm6PNqz0HF3Ljh bandomasis1 }
         - { username: "bandomasis2", ssh_key: "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABgQDuNyN+uiug69pTSCpTsW/qbTmw3LHnqRZERsnbjq04CGq9r5/oP+iTKm68UbkxRCDF0SuXH74S+wnppU+xeRQTcleTxRqVOdEcgX3uz5e1y2dr+VaxWYD1icxC09NEfqGRti/rzgaWUVQ4UvEgkjjxp7ATpBkPFvs99Mz136nC>" }
 
     - name: Disable password authentication in SSH
