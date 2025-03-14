@@ -2,6 +2,7 @@
 - name: Sukurti vartotojus, prisijungimas tik su SSH
   hosts: test
   become: yes
+  become_method: sudo
   tasks:
     - name: Add users
       ansible.builtin.user:
