@@ -1,0 +1,54 @@
+---
+- name: Sukurti vartotojus, prisijungimas tik su SSH
+  hosts: test
+  become: yes
+  tasks:
+    - name: Add users
+      ansible.builtin.user:
+        name: "{{ item.username }}"
+        shell: /bin/bash
+        create_home: yes
+      loop:
+        - { username: "semaphore" }
+
+    - name: Tikrinu direktorija
+      ansible.builtin.file:
+        path: "/home/{{ item.username }}/.ssh"
+        state: directory
+        owner: "{{ item.username }}"
+        group: "{{ item.username }}"
+        mode: '0700'
+      loop:
+        - { username: "semaphore" }
+
+    - name: Pridedu SSH raktus
+      ansible.builtin.copy:
+        content: "{{ item.ssh_key }}"
+        dest: "/home/{{ item.username }}/.ssh/authorized_keys"
+        owner: "{{ item.username }}"
+        group: "{{ item.username }}"
+        mode: '0600'
+      loop:
+        - { username: "semaphore", ssh_key: "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIHHuDQO7Waoz2XfcEBFyN31hsNC90nQgFk1hsSOUBeyy semaphore" }
+
+    - name: Pridedu vartotojus į sudo grupę
+      ansible.builtin.user:
+        name: "{{ item.username }}"
+        groups: sudo
+        append: yes
+      loop:
+        - { username: "semaphore" }
+
+    - name: Leidžiu vartotojams vykdyti sudo be slaptažodžio
+      ansible.builtin.copy:
+        content: "{{ item.username }} ALL=(ALL) NOPASSWD:ALL"
+        dest: "/etc/sudoers.d/{{ item.username }}"
+        mode: '0440'
+      loop:
+        - { username: "semaphore" }
+
+  handlers:
+    - name: Restart SSH
+      ansible.builtin.service:
+        name: sshd
+        state: restarted
