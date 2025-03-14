@@ -15,7 +15,6 @@
         name:
           - apache2
           - openssl
-          - libapache2-mod-ssl
         state: present
         update_cache: yes
 
