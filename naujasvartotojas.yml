@@ -1,6 +1,6 @@
 ---
 - name: Add users and secure SSH
-  hosts: web
+  hosts: test
   become: yes
   tasks:
     - name: Add users
