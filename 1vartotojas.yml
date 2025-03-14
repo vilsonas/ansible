@@ -1,6 +1,6 @@
 ---
 - name: Sukurti vartotojus, prisijungimas tik su SSH
-  hosts: test
+  hosts: all
   become: yes
   tasks:
     - name: Add users
