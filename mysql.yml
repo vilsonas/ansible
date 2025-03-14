@@ -39,6 +39,7 @@
         state: absent
         login_user: root
         login_password: "{{ mysql_root_password }}"
+      ignore_errors: yes
 
     - name: Sukurti nauja admin vartotoja
       mysql_user:
@@ -56,6 +57,7 @@
         state: absent
         login_user: "{{ mysql_admin_user }}"
         login_password: "{{ mysql_admin_password }}"
+      ignore_errors: yes
 
     - name: Kurti MySQL duombaze
       mysql_db:
