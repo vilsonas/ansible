@@ -1,6 +1,6 @@
 ---
 - name: Configure Apache with SSL and BIND9 DNS for test.test.lt
-  hosts: webservers
+  hosts: test
   become: yes
   vars:
     domain: "test.test.lt"
