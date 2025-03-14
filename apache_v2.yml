@@ -1,5 +1,5 @@
 - name: Konfiguracija apache su SSL
-  hosts: web
+  hosts: test
   become: yes
   tasks:
     - name: Update package cache 
