@@ -5,9 +5,9 @@
   become_method: sudo
   
   tasks:
-    - name: Include encrypted vars
-      ansible.builtin.include_vars:
-        file: /etc/ansible/psw.yml
+#    - name: Include encrypted vars
+ #     ansible.builtin.include_vars:
+  #      file: /etc/ansible/psw.yml
 
     - name: Install MySQL reikalingus paketus
       package:
