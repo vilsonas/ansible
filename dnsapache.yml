@@ -1,139 +1,91 @@
 ---
-- name: Configure Apache with SSL for test.test.lt
-  hosts: test
+- name: Setup Local DNS and Apache with SSL
+  hosts: localhost
   become: yes
-  vars:
-    domain: "test.test.lt"
-    ssl_cert_path: "/etc/ssl/certs/{{ domain }}.crt"
-    ssl_key_path: "/etc/ssl/private/{{ domain }}.key"
-    ssl_chain_path: "/etc/ssl/certs/{{ domain }}-chain.crt"  # Adjust if necessary
-    dns_zone: "test.test.lt"
-    dns_forwarder: "8.8.8.8"  # Google DNS, adjust if necessary
   tasks:
-
     - name: Install required packages
       apt:
         name:
+          - bind9
           - apache2
           - openssl
-          - bind9
+          - certbot
+          - python3-certbot-apache
         state: present
         update_cache: yes
 
-    - name: Enable required Apache modules
-      shell: |
-        a2enmod ssl
-        a2enmod rewrite
-      notify: Restart Apache
-
-    - name: Generate a Private Key
-      command: openssl genrsa -out /etc/ssl/private/{{ domain }}.key 2048
-      args:
-        creates: /etc/ssl/private/{{ domain }}.key
-
-    - name: Generate a Certificate Signing Request (CSR)
-      command: openssl req -new -key /etc/ssl/private/{{ domain }}.key -out /etc/ssl/certs/{{ domain }}.csr
-      args:
-        creates: /etc/ssl/certs/{{ domain }}.csr
-
-    - name: Generate a Self-Signed Certificate
-      command: openssl x509 -req -days 365 -in /etc/ssl/certs/{{ domain }}.csr -signkey /etc/ssl/private/{{ domain }}.key -out /etc/ssl/certs/{{ domain }}.crt
-      args:
-        creates: /etc/ssl/certs/{{ domain }}.crt
-
-    - name: Create a Certificate Chain File (Optional)
-      command: cat /path/to/intermediate.crt >> /etc/ssl/certs/{{ domain }}-chain.crt
-      when: intermediate_cert_exists  # Add a condition if you have intermediate certificates
-
-    - name: Configure Apache VirtualHost for HTTP
+    - name: Configure BIND DNS Server
       copy:
-        dest: "/etc/apache2/sites-available/{{ domain }}.conf"
+        dest: /etc/bind/named.conf.local
         content: |
-          <VirtualHost *:80>
-              ServerName {{ domain }}
-              Redirect permanent / https://{{ domain }}/
-          </VirtualHost>
-      notify: Restart Apache
-
-    - name: Configure Apache VirtualHost for HTTPS
-      copy:
-        dest: "/etc/apache2/sites-available/{{ domain }}-ssl.conf"
-        content: |
-          <VirtualHost *:443>
-              ServerName {{ domain }}
-              SSLEngine on
-              SSLCertificateFile {{ ssl_cert_path }}
-              SSLCertificateKeyFile {{ ssl_key_path }}
-              SSLCertificateChainFile {{ ssl_chain_path }}
-              DocumentRoot /var/www/html
-              <Directory /var/www/html>
-                  AllowOverride All
-              </Directory>
-          </VirtualHost>
-      notify: Restart Apache
-
-    - name: Enable Apache site configurations
-      shell: |
-        a2ensite {{ domain }}.conf
-        a2ensite {{ domain }}-ssl.conf
-      notify: Restart Apache
-
-    - name: Ensure Apache is running and enabled
-      service:
-        name: apache2
-        state: started
-        enabled: yes
-
-    - name: Configure BIND with Forwarders
-      copy:
-        dest: "/etc/bind/named.conf.options"
-        content: |
-          options {
-              directory "/var/cache/bind";
-
-              // Forwarders
-              forwarders {
-                  {{ dns_forwarder }};
-              };
-
-              dnssec-validation auto;
-
-              auth-nxdomain no; # conform to RFC1035
-              listen-on-v6 { any; };
-          };
-
-    - name: Configure BIND Zone File
-      copy:
-        dest: "/etc/bind/named.conf.local"
-        content: |
-          zone "{{ dns_zone }}" {
+          zone "test.test.lt" {
               type master;
-              file "/etc/bind/db.{{ dns_zone }}";
+              file "/etc/bind/db.test.test.lt";
           };
+      notify: Restart BIND
 
-    - name: Create BIND Zone Database File
+    - name: Create zone file for test.test.lt
       copy:
-        dest: "/etc/bind/db.{{ dns_zone }}"
+        dest: /etc/bind/db.test.test.lt
         content: |
           $TTL    604800
-          @       IN      SOA     {{ domain }}. root.{{ domain }}. (
-                                2         ; Serial
+          @       IN      SOA     test.test.lt. root.test.test.lt. (
+                              2         ; Serial
                           604800         ; Refresh
                            86400         ; Retry
                          2419200         ; Expire
                           604800 )       ; Negative Cache TTL
           ;
-          @       IN      NS      ns.{{ domain }}.
-          @       IN      A       127.0.0.1
-          ns      IN      A       127.0.0.1
+          @       IN      NS      test.test.lt.
+          @       IN      A       192.168.195.102
+          www     IN      A       192.168.195.102
+      notify: Restart BIND
 
-    - name: Restart BIND service
+    - name: Enable Apache modules for SSL
+      command: a2enmod ssl
+
+    - name: Create virtual host for test.test.lt
+      copy:
+        dest: /etc/apache2/sites-available/test.test.lt.conf
+        content: |
+          <VirtualHost *:80>
+              ServerName test.test.lt
+              Redirect permanent / https://test.test.lt/
+          </VirtualHost>
+
+          <VirtualHost *:443>
+              ServerName test.test.lt
+              DocumentRoot /var/www/html
+
+              SSLEngine on
+              SSLCertificateFile /etc/letsencrypt/live/test.test.lt/fullchain.pem
+              SSLCertificateKeyFile /etc/letsencrypt/live/test.test.lt/privkey.pem
+
+              <Directory /var/www/html>
+                  AllowOverride All
+                  Require all granted
+              </Directory>
+          </VirtualHost>
+      notify: Restart Apache
+
+    - name: Enable Apache site configuration
+      command: a2ensite test.test.lt
+      notify: Restart Apache
+
+    - name: Obtain SSL certificate using Certbot
+      command: certbot --apache -d test.test.lt --non-interactive --agree-tos --email admin@test.test.lt
+    - name: Pavyzdinis index
+      copy:
+        dest: /var/www/html/index.html
+        content: "<h1>Apache testas su SSL</h1>"
+        mode: '0644'
+
+  handlers:
+    - name: Restart BIND
       service:
         name: bind9
         state: restarted
-        enabled: yes
 
-  handlers:
     - name: Restart Apache
       service:
         name: apache2
