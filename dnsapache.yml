@@ -74,6 +74,7 @@
 
     - name: Obtain SSL certificate using Certbot
       command: certbot --apache -d test.test.lt --non-interactive --agree-tos --email admin@test.test.lt
+      
     - name: Pavyzdinis index
       copy:
         dest: /var/www/html/index.html
