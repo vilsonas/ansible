@@ -1,6 +1,6 @@
 ---
 - name: Setup Local DNS and Apache with SSL
-  hosts: localhost
+  hosts: test
   become: yes
   tasks:
     - name: Install required packages
