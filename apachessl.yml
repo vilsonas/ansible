@@ -1,21 +1,21 @@
 ---
-- name: Configure Apache2 with SSL and set hostname
+- name: Configure Apache2 with SSL and force redirect from IP to hostname
   hosts: test
   become: yes
   become_method: sudo
 
   tasks:
-    - name: Set hostname
+    - name: Nustatyti hostname
       hostname:
         name: test.test.lt
 
-    - name: Update /etc/hosts file
+    - name: Įtraukti į /etc/hosts
       lineinfile:
         path: /etc/hosts
         line: "192.168.195.102 test.test.lt"
         state: present
 
-    - name: Install Apache2 and OpenSSL
+    - name: Įdiegti Apache2 ir OpenSSL
       apt:
         name:
           - apache2
@@ -23,49 +23,57 @@
         state: present
         update_cache: yes
 
-    - name: Create SSL directory
+    - name: Sukurti SSL direktoriją
       file:
         path: /etc/apache2/ssl
         state: directory
         mode: '0755'
 
-    - name: Generate SSL certificate
+    - name: Generuoti SSL sertifikatus
       shell: |
         openssl req -x509 -nodes -days 365 -newkey rsa:2048 \
-          -keyout /etc/ssl/certs/test.test.lt.key \
-          -out /etc/ssl/certs/test.test.lt.crt \
-          -subj "/C=LT/ST=State/L=City/O=Organization/OU=Department/CN=test.test.lt" \
-          -config /etc/ssl/openssl.cnf
+          -keyout /etc/apache2/ssl/test.test.lt.key \
+          -out /etc/apache2/ssl/test.test.lt.crt \
+          -subj "/C=LT/ST=State/L=City/O=Organization/OU=Department/CN=test.test.lt"
       args:
-        creates: /etc/ssl/certs/test.test.lt.crt
+        creates: /etc/apache2/ssl/test.test.lt.crt
 
-    - name: Apache virtual hostai
+    - name: Konfigūruoti Apache virtual hostus
       copy:
-        dest: /etc/apache2/sites-available/000-default.conf
+        dest: /etc/apache2/sites-available/default-ssl.conf
         content: |
           <VirtualHost *:80>
               ServerName test.test.lt
               Redirect permanent / https://test.test.lt/
           </VirtualHost>
+
+          <VirtualHost *:80>
+              ServerName 192.168.195.102
+              Redirect permanent / https://test.test.lt/
+          </VirtualHost>
+
           <VirtualHost *:443>
               ServerName test.test.lt
+              ServerAlias 192.168.195.102
               DocumentRoot /var/www/html
               SSLEngine on
-              SSLCertificateFile /etc/ssl/certs/test.test.lt.crt
-              SSLCertificateKeyFile /etc/ssl/certs/test.test.lt.key
+              SSLCertificateFile /etc/apache2/ssl/test.test.lt.crt
+              SSLCertificateKeyFile /etc/apache2/ssl/test.test.lt.key
           </VirtualHost>
-          
-    - name: Pavyzdinis index
+
+    - name: Sukurti testinį index.html
       copy:
         dest: /var/www/html/index.html
-        content: "<h1>Apache testas su SSL</h1>"
+        content: "<h1>Apache testas su SSL ir IP redirect</h1>"
         mode: '0644'
-        
-    - name: Enable SSL module and site
+
+    - name: Įjungti SSL modulį ir virtualų hostą
       shell: |
         a2enmod ssl
-        a2ensite test.test.lt.conf
+        a2enconf ssl
+        a2ensite default-ssl.conf
         systemctl restart apache2
+      notify: Restart Apache
 
   handlers:
     - name: Restart Apache
