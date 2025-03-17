@@ -1,6 +1,6 @@
 ---
 - name: Update and Upgrade APT Packages
-  hosts: test
+  hosts: all
   become: yes
 
   tasks:
