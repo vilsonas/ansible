@@ -124,6 +124,18 @@
         path: /etc/hosts
         line: "{{ server_ip }} {{ domain_name }}"
         state: present
+        
+    - name: Restart the hostname service (for immediate effect)
+      command: hostnamectl set-hostname {{ hostname }}
+
+    - name: Verify the new hostname
+      command: hostname
+      register: new_hostname
+      changed_when: false
+
+    - name: Display the new hostname
+      debug:
+        msg: "New hostname is {{ new_hostname.stdout }}"
 
   handlers:
     - name: Restart Apache
