@@ -1,23 +1,19 @@
 ---
-- name: Setup Apache2 with SSL for test.test.lt
-  hosts: test
+- name: Configure Apache2 with SSL and set hostname
+  hosts: all
   become: yes
-  vars:
-    domain_name: "test.test.lt"
-    server_ip: "192.168.195.102"
-    ssl_dir: "/etc/ssl/certs"
-    private_dir: "/etc/ssl/private"
-    web_root: "/var/www/test.test.lt"
-
-    # SSL Certificate paths
-    root_ca_key: "{{ private_dir }}/rootCA.key"
-    root_ca_cert: "{{ ssl_dir }}/rootCA.crt"
-    cert_key: "{{ private_dir }}/{{ domain_name }}.key"
-    cert_csr: "{{ ssl_dir }}/{{ domain_name }}.csr"
-    cert_crt: "{{ ssl_dir }}/{{ domain_name }}.crt"
-    cert_chain: "{{ ssl_dir }}/{{ domain_name }}-chain.crt"
 
   tasks:
+    - name: Set hostname
+      hostname:
+        name: test.test.lt
+
+    - name: Update /etc/hosts file
+      lineinfile:
+        path: /etc/hosts
+        line: "192.168.195.102 test.test.lt"
+        state: present
+
     - name: Install Apache2 and OpenSSL
       apt:
         name:
@@ -26,119 +22,35 @@
         state: present
         update_cache: yes
 
-    - name: Create necessary directories
+    - name: Create SSL directory
       file:
-        path: "{{ item }}"
+        path: /etc/apache2/ssl
         state: directory
         mode: '0755'
-      loop:
-        - "{{ ssl_dir }}"
-        - "{{ private_dir }}"
-        - "{{ web_root }}"
 
-    - name: Generate a self-signed Root CA (if not exists)
-      command: >
-        openssl req -x509 -new -nodes -keyout {{ root_ca_key }} -out {{ root_ca_cert }}
-        -days 3650 -subj "/C=US/ST=State/L=City/O=MyRootCA/CN=RootCA"
+    - name: Generate SSL certificate
+      shell: |
+        openssl req -x509 -nodes -days 365 -newkey rsa:2048 \
+          -keyout /etc/apache2/ssl/test.test.lt.key \
+          -out /etc/apache2/ssl/test.test.lt.crt \
+          -subj "/C=LT/ST=State/L=City/O=Organization/OU=Department/CN=test.test.lt"
       args:
-        creates: "{{ root_ca_cert }}"
+        creates: /etc/apache2/ssl/test.test.lt.crt
 
-    - name: Generate a private key for the domain
-      command: >
-        openssl genrsa -out {{ cert_key }} 2048
-      args:
-        creates: "{{ cert_key }}"
-
-    - name: Generate a CSR (Certificate Signing Request)
-      command: >
-        openssl req -new -key {{ cert_key }} -out {{ cert_csr }}
-        -subj "/C=US/ST=State/L=City/O=MyOrg/CN={{ domain_name }}"
-      args:
-        creates: "{{ cert_csr }}"
-
-    - name: Sign the certificate with Root CA
-      command: >
-        openssl x509 -req -in {{ cert_csr }} -CA {{ root_ca_cert }} -CAkey {{ root_ca_key }} -CAcreateserial
-        -out {{ cert_crt }} -days 365
-      args:
-        creates: "{{ cert_crt }}"
-
-    - name: Create the certificate chain file
-      shell: cat {{ cert_crt }} {{ root_ca_cert }} > {{ cert_chain }}
-      args:
-        creates: "{{ cert_chain }}"
-
-    - name: Create index.html file for testing
+    - name: Configure Apache to use SSL
       copy:
-        dest: "{{ web_root }}/index.html"
-        content: "<h1>Welcome to {{ domain_name }}!</h1>"
-        owner: www-data
-        group: www-data
-        mode: '0644'
-
-    - name: Configure Apache Virtual Host for SSL
-      copy:
-        dest: "/etc/apache2/sites-available/{{ domain_name }}.conf"
+        dest: /etc/apache2/sites-available/test.test.lt.conf
         content: |
-          <VirtualHost *:80>
-              ServerName {{ domain_name }}
-              Redirect permanent / https://{{ domain_name }}/
-          </VirtualHost>
-
           <VirtualHost *:443>
-              ServerAdmin admin@{{ domain_name }}
-              ServerName {{ domain_name }}
-
-              DocumentRoot {{ web_root }}
-              <Directory {{ web_root }}>
-                  AllowOverride All
-                  Require all granted
-              </Directory>
-
+              ServerName test.test.lt
+              DocumentRoot /var/www/html
               SSLEngine on
-              SSLCertificateFile {{ cert_crt }}
-              SSLCertificateKeyFile {{ cert_key }}
-              SSLCertificateChainFile {{ cert_chain }}
-
-              ErrorLog ${APACHE_LOG_DIR}/{{ domain_name }}_error.log
-              CustomLog ${APACHE_LOG_DIR}/{{ domain_name }}_access.log combined
+              SSLCertificateFile /etc/apache2/ssl/test.test.lt.crt
+              SSLCertificateKeyFile /etc/apache2/ssl/test.test.lt.key
           </VirtualHost>
-      notify: Restart Apache
 
-    - name: Enable Apache SSL module
-      command: a2enmod ssl
-      notify: Restart Apache
-
-    - name: Enable site configuration
-      command: a2ensite {{ domain_name }}.conf
-      notify: Restart Apache
-
-    - name: Ensure Apache is running
-      systemd:
-        name: apache2
-        state: started
-        enabled: yes
-
-    - name: Add domain entry to /etc/hosts (on remote server)
-      lineinfile:
-        path: /etc/hosts
-        line: "{{ server_ip }} {{ domain_name }}"
-        state: present
-        
-    - name: Restart the hostname service (for immediate effect)
-      command: hostnamectl set-hostname {{ hostname }}
-
-    - name: Verify the new hostname
-      command: hostname
-      register: new_hostname
-      changed_when: false
-
-    - name: Display the new hostname
-      debug:
-        msg: "New hostname is {{ new_hostname.stdout }}"
-
-  handlers:
-    - name: Restart Apache
-      systemd:
-        name: apache2
-        state: restarted
+    - name: Enable SSL module and site
+      shell: |
+        a2enmod ssl
+        a2ensite test.test.lt.conf
+        systemctl restart apache2
