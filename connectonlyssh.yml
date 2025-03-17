@@ -1,11 +1,34 @@
-- name: Pasalinti prisijungimas naudojant slaptazodi
+---
+- name: Pasalinu prisijungima slaptazodziu ir naudoti tik SSH
   hosts: test
   become: yes
   tasks:
-
-  - name: Pasalinu prisijungima naudojant slaptažodį
-    ansible.builtin.lineinfile:
+    - name: Pasalinu prisijungima slaptazodziu
+      lineinfile:
         path: /etc/ssh/sshd_config
-        regexp: '^PasswordAuthentication'
+        regexp: '^#?PasswordAuthentication'
         line: 'PasswordAuthentication no'
-    notify: Restart SSH
+      notify:
+        - restart sshd
+
+    - name: Tuscio slaptazodzio isjungimas
+      lineinfile:
+        path: /etc/ssh/sshd_config
+        regexp: '^#?PermitEmptyPasswords'
+        line: 'PermitEmptyPasswords no'
+      notify:
+        - restart sshd
+
+    - name: ChallengeResponseAuthentication  disabled
+      lineinfile:
+        path: /etc/ssh/sshd_config
+        regexp: '^#?ChallengeResponseAuthentication'
+        line: 'ChallengeResponseAuthentication no'
+      notify:
+        - restart sshd
+
+handlers:
+  - name: restart sshd
+    service:
+      name: sshd
+      state: restarted
