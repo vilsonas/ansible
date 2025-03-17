@@ -31,8 +31,8 @@
     - name: Generate SSL certificate
       shell: |
         openssl req -x509 -nodes -days 365 -newkey rsa:2048 \
-          -keyout /etc/apache2/ssl/test.test.lt.key \
-          -out /etc/apache2/ssl/test.test.lt.crt \
+          -keyout /etc/ssl/certs/test.test.lt.key \
+          -out /etc/ssl/certs/test.test.lt.crt \
           -subj "/C=LT/ST=State/L=City/O=Organization/OU=Department/CN=test.test.lt" \
           -config /etc/ssl/openssl.cnf
       args:
@@ -46,8 +46,8 @@
               ServerName test.test.lt
               DocumentRoot /var/www/html
               SSLEngine on
-              SSLCertificateFile /etc/apache2/ssl/test.test.lt.crt
-              SSLCertificateKeyFile /etc/apache2/ssl/test.test.lt.key
+              SSLCertificateFile /etc/ssl/certs/test.test.lt.crt
+              SSLCertificateKeyFile /etc/ssl/certs/test.test.lt.key
           </VirtualHost>
 
     - name: Enable SSL module and site
