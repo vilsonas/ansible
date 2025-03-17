@@ -2,7 +2,6 @@
 - name: Install MySQL
   hosts: test
   become: yes
-  become_method: sudo
   
   tasks:
     - name: Include encrypted vars
