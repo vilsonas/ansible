@@ -37,7 +37,7 @@
           -subj "/C=LT/ST=State/L=City/O=Organization/OU=Department/CN=test.test.lt" \
           -config /etc/ssl/openssl.cnf
       args:
-        creates: /etc/apache2/ssl/test.test.lt.crt
+        creates: /etc/ssl/certs/test.test.lt.crt
 
     - name: Configure Apache to use SSL
       copy:
