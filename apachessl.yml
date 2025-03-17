@@ -1,6 +1,6 @@
 ---
 - name: Configure Apache2 with SSL and force redirect from IP to hostname
-  hosts: test
+  hosts: db
   become: yes
   become_method: sudo
 
