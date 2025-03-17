@@ -9,10 +9,6 @@
       ansible.builtin.include_vars:
         file: /etc/ansible/secrets.yml
 
-    - name: Debugging all secrets
-      debug:
-        var: secrets
-
     - name: Install MySQL reikalingus paketus
       package:
         name:
