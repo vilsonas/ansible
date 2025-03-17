@@ -1,6 +1,6 @@
 ---
 - name: Setup Apache2 with SSL for test.test.lt
-  hosts: webserver
+  hosts: test
   become: yes
   vars:
     domain_name: "test.test.lt"
