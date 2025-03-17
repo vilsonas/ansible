@@ -52,12 +52,12 @@
         - { username: "bandomasis1" }
         - { username: "bandomasis2" }
 
-    - name: Pasalinu prisijungima naudojant slaptažodį
-      ansible.builtin.lineinfile:
-        path: /etc/ssh/sshd_config
-        regexp: '^PasswordAuthentication'
-        line: 'PasswordAuthentication no'
-      notify: Restart SSH
+#    - name: Pasalinu prisijungima naudojant slaptažodį
+ #     ansible.builtin.lineinfile:
+  #      path: /etc/ssh/sshd_config
+   #     regexp: '^PasswordAuthentication'
+    #    line: 'PasswordAuthentication no'
+     # notify: Restart SSH
 
   handlers:
     - name: Restart SSH
