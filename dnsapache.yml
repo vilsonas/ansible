@@ -2,6 +2,7 @@
 - name: Configure Apache2 with SSL and set hostname
   hosts: test
   become: yes
+  become_method: sudo
 
   tasks:
     - name: Set hostname
