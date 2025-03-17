@@ -42,19 +42,30 @@
       copy:
         dest: /etc/apache2/sites-available/default-ssl.conf
         content: |
+          # Peradresavimas iš HTTP į HTTPS
           <VirtualHost *:80>
               ServerName test.test.lt
               Redirect permanent / https://test.test.lt/
           </VirtualHost>
 
+          # Peradresavimas iš IP adresu pasiekto HTTP į HTTPS
           <VirtualHost *:80>
               ServerName 192.168.195.102
               Redirect permanent / https://test.test.lt/
           </VirtualHost>
 
+          # Peradresavimas iš IP adresu pasiekto HTTPS į hostname
+          <VirtualHost *:443>
+              ServerName 192.168.195.102
+              SSLEngine on
+              SSLCertificateFile /etc/apache2/ssl/test.test.lt.crt
+              SSLCertificateKeyFile /etc/apache2/ssl/test.test.lt.key
+              Redirect permanent / https://test.test.lt/
+          </VirtualHost>
+
+          # Pagrindinis HTTPS VirtualHost su hostname
           <VirtualHost *:443>
               ServerName test.test.lt
-              ServerAlias 192.168.195.102
               DocumentRoot /var/www/html
               SSLEngine on
               SSLCertificateFile /etc/apache2/ssl/test.test.lt.crt
