@@ -39,10 +39,14 @@
       args:
         creates: /etc/ssl/certs/test.test.lt.crt
 
-    - name: Configure Apache to use SSL
+    - name: Apache virtual hostai
       copy:
-        dest: /etc/apache2/sites-available/test.test.lt.conf
+        dest: /etc/apache2/sites-available/000-default.conf
         content: |
+          <VirtualHost *:80>
+              ServerName test.test.lt
+              Redirect permanent / https://test.test.lt/
+          </VirtualHost>
           <VirtualHost *:443>
               ServerName test.test.lt
               DocumentRoot /var/www/html
@@ -50,9 +54,21 @@
               SSLCertificateFile /etc/ssl/certs/test.test.lt.crt
               SSLCertificateKeyFile /etc/ssl/certs/test.test.lt.key
           </VirtualHost>
-
+          
+    - name: Pavyzdinis index
+      copy:
+        dest: /var/www/html/index.html
+        content: "<h1>Apache testas su SSL</h1>"
+        mode: '0644'
+        
     - name: Enable SSL module and site
       shell: |
         a2enmod ssl
         a2ensite test.test.lt.conf
         systemctl restart apache2
+
+  handlers:
+    - name: Restart Apache
+      service:
+        name: apache2
+        state: restarted
