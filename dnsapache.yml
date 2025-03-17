@@ -1,13 +1,21 @@
 ---
 - name: Setup Apache2 with SSL for test.test.lt
-  hosts: test
+  hosts: webserver
   become: yes
   vars:
     domain_name: "test.test.lt"
     server_ip: "192.168.195.102"
-    ssl_cert_path: "/etc/apache2/ssl/test.crt"
-    ssl_key_path: "/etc/apache2/ssl/test.key"
+    ssl_dir: "/etc/ssl/certs"
+    private_dir: "/etc/ssl/private"
     web_root: "/var/www/test.test.lt"
+
+    # SSL Certificate paths
+    root_ca_key: "{{ private_dir }}/rootCA.key"
+    root_ca_cert: "{{ ssl_dir }}/rootCA.crt"
+    cert_key: "{{ private_dir }}/{{ domain_name }}.key"
+    cert_csr: "{{ ssl_dir }}/{{ domain_name }}.csr"
+    cert_crt: "{{ ssl_dir }}/{{ domain_name }}.crt"
+    cert_chain: "{{ ssl_dir }}/{{ domain_name }}-chain.crt"
 
   tasks:
     - name: Install Apache2 and OpenSSL
@@ -18,27 +26,49 @@
         state: present
         update_cache: yes
 
-    - name: Create SSL directory
+    - name: Create necessary directories
       file:
-        path: "/etc/apache2/ssl"
+        path: "{{ item }}"
         state: directory
         mode: '0755'
+      loop:
+        - "{{ ssl_dir }}"
+        - "{{ private_dir }}"
+        - "{{ web_root }}"
 
-    - name: Generate SSL certificate and key
+    - name: Generate a self-signed Root CA (if not exists)
       command: >
-        openssl req -x509 -nodes -days 365 -newkey rsa:2048
-        -keyout {{ ssl_key_path }} -out {{ ssl_cert_path }}
-        -subj "/C=US/ST=State/L=City/O=Organization/CN={{ domain_name }}"
+        openssl req -x509 -new -nodes -keyout {{ root_ca_key }} -out {{ root_ca_cert }}
+        -days 3650 -subj "/C=US/ST=State/L=City/O=MyRootCA/CN=RootCA"
+      args:
+        creates: "{{ root_ca_cert }}"
 
-    - name: Create website directory
-      file:
-        path: "{{ web_root }}"
-        state: directory
-        owner: www-data
-        group: www-data
-        mode: '0755'
+    - name: Generate a private key for the domain
+      command: >
+        openssl genrsa -out {{ cert_key }} 2048
+      args:
+        creates: "{{ cert_key }}"
 
-    - name: Create index.html file
+    - name: Generate a CSR (Certificate Signing Request)
+      command: >
+        openssl req -new -key {{ cert_key }} -out {{ cert_csr }}
+        -subj "/C=US/ST=State/L=City/O=MyOrg/CN={{ domain_name }}"
+      args:
+        creates: "{{ cert_csr }}"
+
+    - name: Sign the certificate with Root CA
+      command: >
+        openssl x509 -req -in {{ cert_csr }} -CA {{ root_ca_cert }} -CAkey {{ root_ca_key }} -CAcreateserial
+        -out {{ cert_crt }} -days 365
+      args:
+        creates: "{{ cert_crt }}"
+
+    - name: Create the certificate chain file
+      shell: cat {{ cert_crt }} {{ root_ca_cert }} > {{ cert_chain }}
+      args:
+        creates: "{{ cert_chain }}"
+
+    - name: Create index.html file for testing
       copy:
         dest: "{{ web_root }}/index.html"
         content: "<h1>Welcome to {{ domain_name }}!</h1>"
@@ -46,7 +76,7 @@
         group: www-data
         mode: '0644'
 
-    - name: Configure Apache Virtual Host
+    - name: Configure Apache Virtual Host for SSL
       copy:
         dest: "/etc/apache2/sites-available/{{ domain_name }}.conf"
         content: |
@@ -66,8 +96,9 @@
               </Directory>
 
               SSLEngine on
-              SSLCertificateFile {{ ssl_cert_path }}
-              SSLCertificateKeyFile {{ ssl_key_path }}
+              SSLCertificateFile {{ cert_crt }}
+              SSLCertificateKeyFile {{ cert_key }}
+              SSLCertificateChainFile {{ cert_chain }}
 
               ErrorLog ${APACHE_LOG_DIR}/{{ domain_name }}_error.log
               CustomLog ${APACHE_LOG_DIR}/{{ domain_name }}_access.log combined
