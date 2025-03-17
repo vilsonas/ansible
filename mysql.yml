@@ -4,6 +4,10 @@
   become: yes
   
   tasks:
+    - name: Include encrypted vars
+  ansible.builtin.include_vars:
+    file: etc/asible/mysql.yml
+
     - name: Install MySQL reikalingus paketus
       package:
         name:
