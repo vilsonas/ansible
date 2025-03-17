@@ -1,9 +1,9 @@
 ---
-- name: Pasalinu prisijungima slaptazodziu ir naudoti tik SSH
+- name: Panaikinti prisijungima slaptazodziu, galima prisijungti tik SSH
   hosts: test
   become: yes
   tasks:
-    - name: Pasalinu prisijungima slaptazodziu
+    - name: Isjungiu prisijumgima slaptazodziu
       lineinfile:
         path: /etc/ssh/sshd_config
         regexp: '^#?PasswordAuthentication'
@@ -11,7 +11,7 @@
       notify:
         - restart sshd
 
-    - name: Tuscio slaptazodzio isjungimas
+    - name: Tuscio slaptazodzio blokavimas
       lineinfile:
         path: /etc/ssh/sshd_config
         regexp: '^#?PermitEmptyPasswords'
@@ -19,7 +19,7 @@
       notify:
         - restart sshd
 
-    - name: ChallengeResponseAuthentication  disabled
+    - name: ChallengeResponseAuthentication isjungimas
       lineinfile:
         path: /etc/ssh/sshd_config
         regexp: '^#?ChallengeResponseAuthentication'
@@ -27,8 +27,8 @@
       notify:
         - restart sshd
 
-handlers:
-  - name: restart sshd
-    service:
-      name: sshd
-      state: restarted
+  handlers:
+    - name: restart sshd
+      service:
+        name: sshd
+        state: restarted
