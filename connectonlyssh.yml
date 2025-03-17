@@ -1,0 +1,11 @@
+- name: Pasalinti prisijungimas naudojant slaptazodi
+  hosts: test
+  become: yes
+  tasks:
+
+  - name: Pasalinu prisijungima naudojant slaptažodį
+    ansible.builtin.lineinfile:
+        path: /etc/ssh/sshd_config
+        regexp: '^PasswordAuthentication'
+        line: 'PasswordAuthentication no'
+    notify: Restart SSH
