@@ -9,8 +9,20 @@
         dest: /tmp/rdsensor-linux-x86_64.sh
         mode: '0755'
 
-    - name: Install ESET RDSensor
-      command: /bin/bash /tmp/rdsensor-linux-x86_64.sh
+    - name: Make the installation script executable
+      command: chmod +x /tmp/rdsensor-linux-x86_64.sh
+
+    - name: Install ESET RDSensor using expect to handle user input
+      expect:
+        command: /tmp/rdsensor-linux-x86_64.sh
+        responses:
+          # Simulate pressing Ctrl+C to interrupt the first message (usually disclaimer)
+          "Press Ctrl+C to interrupt": "\003"
+          # Automatically respond 'y' to accept the license agreement
+          "Do you accept the license? [y/N]": "y"
+          # Automatically respond 'Y' to participate in the Product Improvement Program
+          "Do you want to participate in the Product improvement program? [Y/n]": "Y"
+      become: yes
       args:
         creates: /opt/eset/RemoteDeviceSensor
 
@@ -20,23 +32,3 @@
         state: absent
 
     - name: Check if ESET RDSensor service is running
-      systemd:
-        name: esets
-        state: started
-      register: rdsensor_status
-      ignore_errors: yes
-
-    - name: Display ESET RDSensor service status
-      debug:
-        msg: "ESET RDSensor service is {{ rdsensor_status.status.ActiveState }}"
-      when: rdsensor_status is defined and rdsensor_status.status is defined
-
-    - name: Check if ESET RDSensor is installed
-      stat:
-        path: /opt/eset/RemoteDeviceSensor
-      register: rdsensor_installed
-
-    - name: Display installation status
-      debug:
-        msg: "ESET RDSensor is installed at /opt/eset/RemoteDeviceSensor"
-      when: rdsensor_installed.stat.exists
