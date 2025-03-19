@@ -1,6 +1,6 @@
 ---
 - name: Install ESET RD Sensor
-  hosts: web
+  hosts: kiosk
   become: true
   tasks:
 
