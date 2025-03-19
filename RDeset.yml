@@ -28,21 +28,16 @@
         path: /tmp/rdsensor-linux-x86_64.sh
         mode: '0755'
 
-    # Run the installation script, simulate Ctrl+C to stop the rules prompt, then accept agreements
-    - name: Run the installation script and accept prompts
+    # Run the installation script, simulate Ctrl+C to stop reading the rules, then accept agreements
+    - name: Run the installation script and automatically accept prompts
       expect:
         command: bash /tmp/rdsensor-linux-x86_64.sh
         responses:
-          # Press Ctrl+C to stop reading rules (simulated by sending '\003' which is the Ctrl+C signal)
+          # Simulate pressing <Ctrl+C> to stop reading the license
           "Do you accept the license? [y/N]": "y"
           "Do you want to participate in the Product improvement program? [Y/n]": "y"
           "Do you want to continue with the installation? [y/N]": "y"
         timeout: 600
-        matches:
-          - "Do you accept the license? [y/N]"
-          - "Do you want to participate in the Product improvement program? [Y/n]"
-          - "Do you want to continue with the installation? [y/N]"
-        stop_signal: '\003'  # This simulates pressing <Ctrl+C> to stop reading the rules
 
     # Print installation log output for debugging
     - name: Print installation log
