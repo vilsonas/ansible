@@ -4,6 +4,11 @@
   become: yes
   tasks:
 
+    - name: Install pexpect Python library
+      package:
+        name: python3-pexpect
+        state: present
+
     - name: Download RD Sensor installer
       get_url:
         url: "https://download.eset.com/com/eset/apps/business/era/rdsensor/latest/rdsensor-linux-x86_64.sh"
@@ -19,10 +24,10 @@
       expect:
         command: "/tmp/rdsensor-linux-x86_64.sh"
         responses:
-          # Respond to the EULA prompt (Space to continue, Y to accept)
-          'Press Space to continue': ' '
-          'Do you accept the license agreement?': 'Y'
-          'Do you wish to participate in the product improvement program?': 'Y'
+          # Simulate pressing Ctrl+C (which sends the escape sequence \003) and then Enter (new line)
+          'Press Space to continue': '\003\n'
+          'Do you accept the license agreement?': 'Y\n'
+          'Do you wish to participate in the product improvement program?': 'Y\n'
       args:
         chdir: /tmp
 
