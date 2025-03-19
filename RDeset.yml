@@ -1,4 +1,4 @@
-- hosts: all
+- hosts: test
   become: yes
   tasks:
     - name: Ensure necessary tools are installed
@@ -14,12 +14,17 @@
         dest: "/tmp/rdsensor-linux-x86_64.sh"
         mode: '0755'
 
+    - name: Make RD Sensor script executable
+      command: chmod +x /tmp/rdsensor-linux-x86_64.sh
+
     - name: Create Expect script for automated installation
       copy:
         dest: "/tmp/install_rdsensor.exp"
         content: |
           #!/usr/bin/expect -f
           spawn sudo /tmp/rdsensor-linux-x86_64.sh
+          expect "End User License Agreement"
+          send "\003\r"  ; # Simulates pressing Ctrl+C and Enter
           expect "Do you accept the agreement?" { send "Y\r" }
           expect "Do you agree to participate?" { send "Y\r" }
           expect eof
@@ -27,19 +32,19 @@
     - name: Make Expect script executable
       command: chmod +x /tmp/install_rdsensor.exp
 
-    - name: Make RD Sensor script executable
-      command: chmod +x /tmp/rdsensor-linux-x86_64.sh
-
     - name: Run the RD Sensor installation script using Expect
       command: /tmp/install_rdsensor.exp
 
-    - name: Verify the RD Sensor service is running
-      shell: sudo systemctl status rdsensor
-      register: rdsensor_status
+    - name: Verify the RD Sensor service is installed
+      shell: systemctl list-units --type=service --all | grep rdsensor
+      register: rdsensor_check
+      failed_when: rdsensor_check.rc != 0
 
-    - name: Display service status
-      debug:
-        msg: "{{ rdsensor_status.stdout }}"
+    - name: Start and enable the RD Sensor service
+      service:
+        name: rdsensor
+        state: started
+        enabled: yes
 
     - name: Clean up installation script and Expect script
       file:
