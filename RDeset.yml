@@ -1,6 +1,6 @@
 ---
 - name: Install ESET RD Sensor
-  hosts: all
+  hosts: test
   become: true
   tasks:
 
@@ -32,21 +32,4 @@
           'Do you accept the license agreement?': 'Y\n'
           # Accept the product improvement program
           'Do you wish to participate in the product improvement program?': 'Y\n'
-        ignore_errors: yes  # In case the process hangs, move on to the next task
-      args:
-        chdir: /tmp
-
-    - name: Ensure ESET RD Sensor is running
-      systemd:
-        name: rdsensor
-        state: started
-        enabled: yes
-
-    - name: Verify RD Sensor service status
-      command: systemctl status rdsensor
-      register: rdsensor_status
-      changed_when: false
-
-    - name: Show RD Sensor service status
-      debug:
-        msg: "{{ rdsensor_status.stdout }}"
+        time
