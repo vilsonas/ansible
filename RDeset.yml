@@ -3,61 +3,54 @@
   hosts: web
   become: yes
   tasks:
-    - name: Download ESET RDSensor installation script
+    - name: Download
       get_url:
         url: https://download.eset.com/com/eset/apps/business/era/rdsensor/latest/rdsensor-linux-x86_64.sh
         dest: /tmp/rdsensor-linux-x86_64.sh
         mode: '0755'
 
-    - name: Make the installation script executable
+    - name: Padarom pasiekiama
       command: chmod +x /tmp/rdsensor-linux-x86_64.sh
 
-    - name: Install ESET RDSensor using expect to handle user input
+    - name: Install RDsensor su sutikimu
       expect:
         command: /tmp/rdsensor-linux-x86_64.sh
         responses:
-          # Handle the first prompt: press Ctrl+C to stop extracting
           "If you want to stop extracting, please press <ctrl-C>": "\003"  # \003 is the Ctrl+C
           
-          # Simulate pressing a key (Enter) to continue after Ctrl+C prompt
-          "Press any key to continue": "\n"  # Simulating pressing Enter to continue
+          "Press any key to continue": "\n"  
 
-          # Accept the End User License Agreement by responding with 'y'
           "Do you accept the license? [y/N]": "y"
-          
-          # Participate in the Product Improvement Program by responding with 'Y'
+          '
           "Do you want to participate in the Product improvement program? [Y/n]": "Y"
-          
-          # Handle the <More> prompt to scroll through the license terms (if needed)
-          "--More--": "\n"  # Press Enter to continue (if necessary)
 
       become: yes
       args:
         creates: /opt/eset/RemoteDeviceSensor
 
-    - name: Clean up installation script
+    - name: Ištrinam install failą
       file:
         path: /tmp/rdsensor-linux-x86_64.sh
         state: absent
 
-    - name: Check if ESET RDSensor service is running
+    - name: Patikrinam ar veikia RDsensor
       systemd:
         name: esets
         state: started
       register: rdsensor_status
       ignore_errors: yes
 
-    - name: Display ESET RDSensor service status
+    - name: Atvaizduojam statusą
       debug:
-        msg: "ESET RDSensor service is {{ rdsensor_status.status.ActiveState }}"
+        msg: "ESET RDsensor aktyvus {{ rdsensor_status.status.ActiveState }}"
       when: rdsensor_status is defined and rdsensor_status.status is defined
 
-    - name: Check if ESET RDSensor is installed
+    - name: Patikrinam ar RDsensor instaliuotas
       stat:
         path: /opt/eset/RemoteDeviceSensor
       register: rdsensor_installed
 
-    - name: Display installation status
+    - name: Instaliacijos statusas
       debug:
-        msg: "ESET RDSensor is installed at /opt/eset/RemoteDeviceSensor"
+        msg: "ESET RDsensor instaliuotas at /opt/eset/RemoteDeviceSensor"
       when: rdsensor_installed.stat.exists
