@@ -24,10 +24,11 @@
       expect:
         command: "/tmp/rdsensor-linux-x86_64.sh"
         responses:
-          # Simulate pressing Ctrl+C (which sends the escape sequence \003) and then Enter (new line)
+          # Simulate pressing Ctrl+C (escape sequence \003), then Enter (\n)
           'Press Space to continue': '\003\n'
           'Do you accept the license agreement?': 'Y\n'
           'Do you wish to participate in the product improvement program?': 'Y\n'
+        timeout: 600  # Increase the timeout to 600 seconds (10 minutes)
       args:
         chdir: /tmp
 
