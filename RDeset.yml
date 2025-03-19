@@ -3,9 +3,7 @@
   tasks:
     - name: Ensure necessary tools are installed
       apt:
-        name:
-          - curl
-          - expect
+        name: curl
         state: present
 
     - name: Download the RD Sensor installation script
@@ -14,28 +12,14 @@
         dest: "/tmp/rdsensor-linux-x86_64.sh"
         mode: '0755'
 
-    - name: Make RD Sensor script executable
-      command: chmod +x /tmp/rdsensor-linux-x86_64.sh
-
-    - name: Create Expect script for automated installation
+    - name: Copy Bash script to install RD Sensor
       copy:
-        dest: "/tmp/install_rdsensor.exp"
-        content: |
-          #!/usr/bin/expect -f
-          spawn sudo /tmp/rdsensor-linux-x86_64.sh
-          expect {
-              "If you want to stop extracting" { send "\003\r" }
-              "End User License Agreement" { send " " }
-          }
-          expect "Do you accept the agreement?" { send "Y\r" }
-          expect "Do you agree to participate?" { send "Y\r" }
-          expect eof
+        src: ./install_rdsensor.sh
+        dest: /tmp/install_rdsensor.sh
+        mode: '0755'
 
-    - name: Make Expect script executable
-      command: chmod +x /tmp/install_rdsensor.exp
-
-    - name: Run the RD Sensor installation script using Expect
-      command: /tmp/install_rdsensor.exp
+    - name: Run the Bash script to install RD Sensor
+      command: /tmp/install_rdsensor.sh
 
     - name: Reload systemd manager configuration
       command: sudo systemctl daemon-reload
@@ -45,17 +29,3 @@
         name: rdsensor
         state: started
         enabled: yes
-      ignore_errors: yes
-
-    - name: Verify the RD Sensor service is installed
-      shell: systemctl list-units --type=service --all | grep rdsensor
-      register: rdsensor_check
-      failed_when: rdsensor_check.rc != 0
-
-    - name: Clean up installation script and Expect script
-      file:
-        path: "{{ item }}"
-        state: absent
-      loop:
-        - "/tmp/rdsensor-linux-x86_64.sh"
-        - "/tmp/install_rdsensor.exp"
