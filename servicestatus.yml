@@ -1,12 +1,18 @@
+---
 - name: Check Service Status
   hosts: kiosk
   become: yes
   tasks:
     - name: Check if service is running
       ansible.builtin.systemd:
-        name: rdsensor  # Change to your service name
+        name: rdsensor
       register: service_status
 
     - name: Display service status
       debug:
         msg: "Service is {{ service_status.status.ActiveState }}"
+
+    - name: Fail if service is inactive
+      fail:
+        msg: "Service is not running!"
+      when: service_status.status.ActiveState != "active"
