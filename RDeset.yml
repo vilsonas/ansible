@@ -17,8 +17,6 @@
 
     - name: RD Sensor installation file as an executable
       command: chmod +x /tmp/rdsensor-linux-x86_64.sh
-   #   args:
-    #    creates: /tmp/rdsensor-linux-x86_64.sh
 
     - name: Vykdyti RDsensor installer su 
       expect:
@@ -27,8 +25,6 @@
           'More--': 'q\n'
           'Do you accept the license?': 'Y\n'
           'Do you want to participate in the Product improvement program?': 'N\n'
-   #   args:
-  #      chdir: /tmp
 
     - name: Patikrinam ar RDsensorius veikia
       systemd:
