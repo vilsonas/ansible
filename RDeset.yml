@@ -1,10 +1,10 @@
 ---
 - name: Install ESET RD Sensor on Linux
-  hosts: test
+  hosts: linux_servers
   become: yes
   tasks:
 
-    # Install required dependencies including expect and python3-pip for pexpect
+    # Install required dependencies including expect
     - name: Install required dependencies
       package:
         name:
@@ -14,12 +14,6 @@
           - python3-pip
           - systemd
         state: present
-
-    # Install pexpect for Python 3
-    - name: Install pexpect for Python 3
-      pip:
-        name: pexpect
-        executable: pip3
 
     # Download the ESET RD Sensor installation script
     - name: Download ESET RD Sensor installation script
@@ -34,16 +28,21 @@
         path: /tmp/rdsensor-linux-x86_64.sh
         mode: '0755'
 
-    # Run the installation script and automatically accept the prompts
-    - name: Run the installation script and automatically accept prompts
+    # Run the installation script, simulate Ctrl+C to stop the rules prompt, then accept agreements
+    - name: Run the installation script and accept prompts
       expect:
         command: bash /tmp/rdsensor-linux-x86_64.sh
         responses:
+          # Press Ctrl+C to stop reading rules (simulated by sending '\003' which is the Ctrl+C signal)
           "Do you accept the license? [y/N]": "y"
           "Do you want to participate in the Product improvement program? [Y/n]": "y"
           "Do you want to continue with the installation? [y/N]": "y"
         timeout: 600
-      register: install_output
+        matches:
+          - "Do you accept the license? [y/N]"
+          - "Do you want to participate in the Product improvement program? [Y/n]"
+          - "Do you want to continue with the installation? [y/N]"
+        stop_signal: '\003'  # This simulates pressing <Ctrl+C> to stop reading the rules
 
     # Print installation log output for debugging
     - name: Print installation log
