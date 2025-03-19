@@ -30,7 +30,7 @@
           'Do you accept the license?': 'Y\n'
           # Accept the product improvement program
           'Do you want to participate in the Product improvement program?': 'Y\n'
-        timeout: 100  # Increased timeout to 20 minutes (1200 seconds)
+        timeout: 10  # Increased timeout to 20 minutes (1200 seconds)
       args:
         chdir: /tmp
 
