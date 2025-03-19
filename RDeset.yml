@@ -1,6 +1,6 @@
 ---
 - name: Install ESET RD Sensor
-  hosts: test
+  hosts: all
   become: yes
   tasks:
 
@@ -24,11 +24,11 @@
       expect:
         command: "/tmp/rdsensor-linux-x86_64.sh"
         responses:
-          # Simulate pressing Ctrl+C (escape sequence \003), then Enter (\n)
-          'Press Space to continue': '\003\n'
+          # Simulate pressing Ctrl+C (escape sequence \003) followed by Enter (\n)
+          'If you want to stop extracting, please press <ctrl-C>.': '\003\n'
           'Do you accept the license agreement?': 'Y\n'
           'Do you wish to participate in the product improvement program?': 'Y\n'
-        timeout: 600  # Increase the timeout to 600 seconds (10 minutes)
+        timeout: 100  # Increase timeout to ensure the process has enough time
       args:
         chdir: /tmp
 
