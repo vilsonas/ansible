@@ -32,3 +32,23 @@
         state: absent
 
     - name: Check if ESET RDSensor service is running
+      systemd:
+        name: esets
+        state: started
+      register: rdsensor_status
+      ignore_errors: yes
+
+    - name: Display ESET RDSensor service status
+      debug:
+        msg: "ESET RDSensor service is {{ rdsensor_status.status.ActiveState }}"
+      when: rdsensor_status is defined and rdsensor_status.status is defined
+
+    - name: Check if ESET RDSensor is installed
+      stat:
+        path: /opt/eset/RemoteDeviceSensor
+      register: rdsensor_installed
+
+    - name: Display installation status
+      debug:
+        msg: "ESET RDSensor is installed at /opt/eset/RemoteDeviceSensor"
+      when: rdsensor_installed.stat.exists
