@@ -1,10 +1,10 @@
 ---
 - name: Install ESET RD Sensor on Linux
-  hosts: test
+  hosts: linux_servers
   become: yes
   tasks:
 
-    - name: Install required packages
+    - name: Install required dependencies
       package:
         name:
           - wget
@@ -23,8 +23,8 @@
         path: /tmp/rdsensor-linux-x86_64.sh
         mode: '0755'
 
-    - name: Run the installation script
-      command: bash /tmp/rdsensor-linux-x86_64.sh --silent
+    - name: Run the installation script and auto-accept agreement
+      command: echo "yes" | bash /tmp/rdsensor-linux-x86_64.sh
       register: install_output
       ignore_errors: yes
 
