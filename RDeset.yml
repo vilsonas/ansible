@@ -1,7 +1,8 @@
 ---
 - name: Install ESET RD Sensor on Linux
   hosts: test
-  become: yes
+  become: true
+  become_method: sudo
   tasks:
 
     - name: Parsisiunciam ESET RD sensor
