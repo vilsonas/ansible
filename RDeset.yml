@@ -1,56 +1,50 @@
 ---
-- name: Install ESET RDSensor and Check Status
+- name: Install ESET RD Sensor
   hosts: web
-  become: yes
+  become: true
   tasks:
-    - name: Download
+
+    - name: Install pexpect Python library
+      package:
+        name: python3-pexpect
+        state: present
+
+    - name: Download RD Sensor installer
       get_url:
-        url: https://download.eset.com/com/eset/apps/business/era/rdsensor/latest/rdsensor-linux-x86_64.sh
-        dest: /tmp/rdsensor-linux-x86_64.sh
+        url: "https://download.eset.com/com/eset/apps/business/era/rdsensor/latest/rdsensor-linux-x86_64.sh"
+        dest: "/tmp/rdsensor-linux-x86_64.sh"
         mode: '0755'
 
-    - name: Padarom pasiekiama
+    - name: Set RD Sensor installer as executable
       command: chmod +x /tmp/rdsensor-linux-x86_64.sh
-
-    - name: Install RDsensor su sutikimu
-      expect:
-        command: /tmp/rdsensor-linux-x86_64.sh
-        responses:
-          "If you want to stop extracting, please press <ctrl-C>": "\003"  # \003 is the Ctrl+C
-          
-          "Press any key to continue": "\n"  
-
-          "Do you accept the license? [y/N]": "y"
-          '
-          "Do you want to participate in the Product improvement program? [Y/n]": "Y"
-
-      become: yes
       args:
-        creates: /opt/eset/RemoteDeviceSensor
+        creates: /tmp/rdsensor-linux-x86_64.sh
 
-    - name: Ištrinam install failą
-      file:
-        path: /tmp/rdsensor-linux-x86_64.sh
-        state: absent
+    - name: Run ESET RD Sensor installer with EULA and Product Improvement prompts
+      expect:
+        command: "/tmp/rdsensor-linux-x86_64.sh"
+        responses:
+          # If the installer prompts "More--", press 'q' to quit
+          'More--': 'q\n'
+          # Accept the license agreement
+          'Do you accept the license agreement?': 'Y\n'
+          # Accept the product improvement program
+          'Do you wish to participate in the product improvement program?': 'Y\n'
+        timeout: 100  # Increased timeout to 20 minutes (1200 seconds)
+      args:
+        chdir: /tmp
 
-    - name: Patikrinam ar veikia RDsensor
+    - name: Ensure ESET RD Sensor is running
       systemd:
-        name: esets
+        name: rdsensor
         state: started
+        enabled: yes
+
+    - name: Verify RD Sensor service status
+      command: systemctl status rdsensor
       register: rdsensor_status
-      ignore_errors: yes
+      changed_when: false
 
-    - name: Atvaizduojam statusą
+    - name: Show RD Sensor service status
       debug:
-        msg: "ESET RDsensor aktyvus {{ rdsensor_status.status.ActiveState }}"
-      when: rdsensor_status is defined and rdsensor_status.status is defined
-
-    - name: Patikrinam ar RDsensor instaliuotas
-      stat:
-        path: /opt/eset/RemoteDeviceSensor
-      register: rdsensor_installed
-
-    - name: Instaliacijos statusas
-      debug:
-        msg: "ESET RDsensor instaliuotas at /opt/eset/RemoteDeviceSensor"
-      when: rdsensor_installed.stat.exists
+        msg: "{{ rdsensor_status.stdout }}"
