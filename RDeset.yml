@@ -23,8 +23,10 @@
         content: |
           #!/usr/bin/expect -f
           spawn sudo /tmp/rdsensor-linux-x86_64.sh
-          expect "End User License Agreement"
-          send "\003\r"  ; # Simulates pressing Ctrl+C and Enter
+          expect {
+              "If you want to stop extracting" { send "\003\r" }
+              "End User License Agreement" { send " " }
+          }
           expect "Do you accept the agreement?" { send "Y\r" }
           expect "Do you agree to participate?" { send "Y\r" }
           expect eof
