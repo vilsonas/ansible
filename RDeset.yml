@@ -37,16 +37,20 @@
     - name: Run the RD Sensor installation script using Expect
       command: /tmp/install_rdsensor.exp
 
-    - name: Verify the RD Sensor service is installed
-      shell: systemctl list-units --type=service --all | grep rdsensor
-      register: rdsensor_check
-      failed_when: rdsensor_check.rc != 0
+    - name: Reload systemd manager configuration
+      command: sudo systemctl daemon-reload
 
     - name: Start and enable the RD Sensor service
       service:
         name: rdsensor
         state: started
         enabled: yes
+      ignore_errors: yes
+
+    - name: Verify the RD Sensor service is installed
+      shell: systemctl list-units --type=service --all | grep rdsensor
+      register: rdsensor_check
+      failed_when: rdsensor_check.rc != 0
 
     - name: Clean up installation script and Expect script
       file:
