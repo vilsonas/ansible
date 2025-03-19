@@ -19,7 +19,7 @@
         dest: "/tmp/install_rdsensor.exp"
         content: |
           #!/usr/bin/expect -f
-          spawn sudo ./rdsensor-linux-x86_64.sh
+          spawn sudo /tmp/rdsensor-linux-x86_64.sh
           expect "Do you accept the agreement?" { send "Y\r" }
           expect "Do you agree to participate?" { send "Y\r" }
           expect eof
@@ -38,10 +38,4 @@
       debug:
         msg: "{{ rdsensor_status.stdout }}"
 
-    - name: Clean up installation script and Expect script
-      file:
-        path: "{{ item }}"
-        state: absent
-      loop:
-        - "/tmp/rdsensor-linux-x86_64.sh"
-        - "/tmp/install_rdsensor.exp"
+    - name: Clean up installation script and Expect
