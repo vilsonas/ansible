@@ -30,7 +30,7 @@
           'More--': '\n'
           'Do you accept the license agreement?': 'Y\n'
           'Do you wish to participate in the product improvement program?': 'Y\n'
-        timeout: 600  # Increase timeout to 600 seconds (10 minutes)
+        timeout: 60  # Increase timeout to 600 seconds (10 minutes)
       args:
         chdir: /tmp
 
