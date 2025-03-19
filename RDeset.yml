@@ -4,11 +4,6 @@
   become: true
   tasks:
 
- #   - name: Instaliuojam python3-pexpect
-  #    package:
-   #     name: python3-pexpect
-    #    state: present
-
     - name: Download RD sensor
       get_url:
         url: "https://download.eset.com/com/eset/apps/business/era/rdsensor/latest/rdsensor-linux-x86_64.sh"
@@ -20,14 +15,6 @@
 
     - name: Vykdyti RDsensor installer su 
       command: "/tmp/rdsensor-linux-x86_64.sh --skip-license  --disable-imp-program"
-
-  #  - name: Vykdyti RDsensor installer su 
-  #    expect:
-   #     command: "/tmp/rdsensor-linux-x86_64.sh"
-     #   responses:
-      #    'More--': 'q\n'
-       #   'Do you accept the license?': 'Y\n'
-        #  'Do you want to participate in the Product improvement program?': 'N\n'
 
     - name: Patikrinam ar RDsensorius veikia
       systemd:
