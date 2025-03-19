@@ -1,6 +1,6 @@
 ---
 - name: Install ESET RD Sensor on Linux
-  hosts: linux_servers
+  hosts: test
   become: yes
   tasks:
 
