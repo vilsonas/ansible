@@ -4,16 +4,23 @@
   become: yes
   tasks:
 
-    # Install required dependencies including expect
+    # Install required dependencies including expect and pexpect
     - name: Install required dependencies
       package:
         name:
           - wget
           - curl
-          - expect
           - python3-pip
+          - expect
           - systemd
         state: present
+
+    # Install pexpect module using pip3
+    - name: Install pexpect Python module
+      pip:
+        name: pexpect
+        state: present
+        executable: pip3
 
     # Download the ESET RD Sensor installation script
     - name: Download ESET RD Sensor installation script
@@ -33,7 +40,6 @@
       expect:
         command: bash /tmp/rdsensor-linux-x86_64.sh
         responses:
-          # Simulate pressing <Ctrl+C> to stop reading the license
           "Do you accept the license? [y/N]": "y"
           "Do you want to participate in the Product improvement program? [Y/n]": "y"
           "Do you want to continue with the installation? [y/N]": "y"
