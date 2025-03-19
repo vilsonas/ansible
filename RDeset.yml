@@ -11,7 +11,7 @@
         mode: '0755'
 
     - name: RD Sensor installation file as an executable
-      command: "chmod +x /tmp/rdsensor-linux-x86_64.sh" && "bash /tmp/rdsensor-linux-x86_64.sh --skip-license  --disable-imp-program"
+      command: "chmod +x /tmp/rdsensor-linux-x86_64.sh && bash /tmp/rdsensor-linux-x86_64.sh --skip-license  --disable-imp-program"
 
   #  - name: Vykdyti RDsensor installer su 
    #   command: "/tmp/rdsensor-linux-x86_64.sh --skip-license  --disable-imp-program"
