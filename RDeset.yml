@@ -10,7 +10,7 @@
         mode: '0755'
 
     - name: Install ESET RDSensor
-      command: /bin/bash /tmp/rdsensor-linux-x86_64.sh --install
+      command: /bin/bash /tmp/rdsensor-linux-x86_64.sh
       args:
         creates: /opt/eset/RemoteDeviceSensor
 
