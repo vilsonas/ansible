@@ -25,17 +25,4 @@
           expect eof
 
     - name: Make Expect script executable
-      command: chmod +x /tmp/install_rdsensor.exp
-
-    - name: Run the RD Sensor installation script using Expect
-      command: /tmp/install_rdsensor.exp
-
-    - name: Verify the RD Sensor service is running
-      shell: sudo systemctl status rdsensor
-      register: rdsensor_status
-
-    - name: Display service status
-      debug:
-        msg: "{{ rdsensor_status.stdout }}"
-
-    - name: Clean up installation script and Expect
+      command: chmod +
