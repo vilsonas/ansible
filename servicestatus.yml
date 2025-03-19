@@ -1,6 +1,6 @@
 ---
 - name: Check Service Status
-  hosts: web
+  hosts: kiosk
   become: yes
   tasks:
     - name: Check if service is running
