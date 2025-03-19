@@ -1,63 +1,42 @@
 ---
-- name: Install ESET RD Sensor on Linux
+- name: Install ESET RD Sensor
   hosts: test
   become: yes
   tasks:
-    # Install required dependencies including expect and python3-venv
-    - name: Install required dependencies
-      package:
-        name:
-          - wget
-          - curl
-          - python3-pip
-          - expect
-          - python3-venv  # Virtual environment creation support
-          - systemd
-        state: present
 
-    # Create a Python virtual environment
-    - name: Create virtual environment for pexpect
-      command: python3 -m venv /tmp/pexpect_env creates=/tmp/pexpect_env
-
-    # Install pexpect in the virtual environment
-    - name: Install pexpect in the virtual environment
-      pip:
-        name: pexpect
-        virtualenv: /tmp/pexpect_env
-        executable: /tmp/pexpect_env/bin/pip
-
-    # Download the ESET RD Sensor installation script
-    - name: Download ESET RD Sensor installation script
+    - name: Download RD Sensor installer
       get_url:
         url: "https://download.eset.com/com/eset/apps/business/era/rdsensor/latest/rdsensor-linux-x86_64.sh"
         dest: "/tmp/rdsensor-linux-x86_64.sh"
         mode: '0755'
 
-    # Ensure the installation script is executable
-    - name: Ensure script is executable
-      file:
-        path: /tmp/rdsensor-linux-x86_64.sh
-        mode: '0755'
+    - name: Set RD Sensor installer as executable
+      command: chmod +x /tmp/rdsensor-linux-x86_64.sh
+      args:
+        creates: /tmp/rdsensor-linux-x86_64.sh
 
-    # Run the installation script, simulate Ctrl+C to stop reading the rules, then accept agreements
-    - name: Run the installation script and automatically accept prompts
+    - name: Run ESET RD Sensor installer with EULA and Product Improvement prompts
       expect:
-        command: bash /tmp/rdsensor-linux-x86_64.sh
+        command: "/tmp/rdsensor-linux-x86_64.sh"
         responses:
-          "Do you accept the license? [y/N]": "y"
-          "Do you want to participate in the Product improvement program? [Y/n]": "y"
-          "Do you want to continue with the installation? [y/N]": "y"
-        timeout: 600
+          # Respond to the EULA prompt (Space to continue, Y to accept)
+          'Press Space to continue': ' '
+          'Do you accept the license agreement?': 'Y'
+          'Do you wish to participate in the product improvement program?': 'Y'
+      args:
+        chdir: /tmp
 
-    # Print installation log output for debugging
-    - name: Print installation log
-      debug:
-        var: install_output.stdout_lines
-
-    # Ensure ESET RD Sensor service is running
-    - name: Ensure ESET RD Sensor service is running
+    - name: Ensure ESET RD Sensor is running
       systemd:
         name: rdsensor
         state: started
         enabled: yes
-      ignore_errors: yes
+
+    - name: Verify RD Sensor service status
+      command: systemctl status rdsensor
+      register: rdsensor_status
+      changed_when: false
+
+    - name: Show RD Sensor service status
+      debug:
+        msg: "{{ rdsensor_status.stdout }}"
