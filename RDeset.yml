@@ -1,7 +1,7 @@
 ---
 - name: Install ESET RD Sensor
-  hosts: test
-  become: true  # Corrected to a valid boolean value
+  hosts: all
+  become: true
   tasks:
 
     - name: Install pexpect Python library
@@ -24,13 +24,15 @@
       expect:
         command: "/tmp/rdsensor-linux-x86_64.sh"
         responses:
-          # Send Ctrl+C (escape sequence \003) to interrupt
+          # Send Ctrl+C (escape sequence \003) to interrupt the extraction process
           'If you want to stop extracting, please press <ctrl-C>.': '\003\n'
           # If the installer prompts "More--", press Enter to continue
           'More--': '\n'
+          # Accept the license agreement
           'Do you accept the license agreement?': 'Y\n'
+          # Accept the product improvement program
           'Do you wish to participate in the product improvement program?': 'Y\n'
-        timeout: 60  # Increase timeout to 600 seconds (10 minutes)
+        ignore_errors: yes  # In case the process hangs, move on to the next task
       args:
         chdir: /tmp
 
