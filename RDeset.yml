@@ -4,18 +4,18 @@
   become: yes
   tasks:
 
-    - name: Download ESET RD Sensor installation script
+    - name: Parsisiunciam ESET RD sensor
       get_url:
         url: "https://download.eset.com/com/eset/apps/business/era/rdsensor/latest/rdsensor-linux-x86_64.sh"
         dest: "/tmp/rdsensor-linux-x86_64.sh"
         mode: '0755'
 
-    - name: Ensure the script is executable
+    - name: 
       file:
         path: /tmp/rdsensor-linux-x86_64.sh
         mode: '0755'
 
-    - name: Run the installation script
+    - name: Įrašinėjam
       command: bash /tmp/rdsensor-linux-x86_64.sh
       args:
         chdir: /tmp
