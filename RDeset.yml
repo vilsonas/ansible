@@ -3,8 +3,7 @@
   hosts: test
   become: yes
   tasks:
-
-    # Install required dependencies including expect and pexpect
+    # Install required dependencies including expect and python3-venv
     - name: Install required dependencies
       package:
         name:
@@ -12,15 +11,20 @@
           - curl
           - python3-pip
           - expect
+          - python3-venv  # Virtual environment creation support
           - systemd
         state: present
 
-    # Install pexpect module using pip3
-    - name: Install pexpect Python module
+    # Create a Python virtual environment
+    - name: Create virtual environment for pexpect
+      command: python3 -m venv /tmp/pexpect_env creates=/tmp/pexpect_env
+
+    # Install pexpect in the virtual environment
+    - name: Install pexpect in the virtual environment
       pip:
         name: pexpect
-        state: present
-        executable: pip3
+        virtualenv: /tmp/pexpect_env
+        executable: /tmp/pexpect_env/bin/pip
 
     # Download the ESET RD Sensor installation script
     - name: Download ESET RD Sensor installation script
