@@ -1,29 +1,40 @@
 ---
 - name: Install ESET RD Sensor on Linux
-  hosts: test
-  become: true
-  become_method: sudo
+  hosts: linux_servers
+  become: yes
   tasks:
 
-    - name: Parsisiunciam ESET RD sensor
+    - name: Install required packages
+      package:
+        name:
+          - wget
+          - curl
+          - systemd
+        state: present
+
+    - name: Download ESET RD Sensor installation script
       get_url:
         url: "https://download.eset.com/com/eset/apps/business/era/rdsensor/latest/rdsensor-linux-x86_64.sh"
         dest: "/tmp/rdsensor-linux-x86_64.sh"
         mode: '0755'
 
-    - name: 
+    - name: Ensure script is executable
       file:
         path: /tmp/rdsensor-linux-x86_64.sh
         mode: '0755'
 
-    - name: Įrašinėjam
-      command: bash /tmp/rdsensor-linux-x86_64.sh
-      args:
-        chdir: /tmp
+    - name: Run the installation script
+      command: bash /tmp/rdsensor-linux-x86_64.sh --silent
+      register: install_output
+      ignore_errors: yes
+
+    - name: Print installation script output
+      debug:
+        var: install_output.stdout_lines
 
     - name: Ensure ESET RD Sensor service is running
       systemd:
-        name: eset-rd-sensor
+        name: eset-rdsensor
         state: started
         enabled: yes
-      ignore_errors: yes  # Ignore errors in case the service name varies
+      ignore_errors: yes
