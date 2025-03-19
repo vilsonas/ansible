@@ -4,43 +4,40 @@
   become: true
   tasks:
 
-    - name: Install pexpect Python library
+    - name: Instaliuojam python3-pexpect
       package:
         name: python3-pexpect
         state: present
 
-    - name: Download RD Sensor installer
+    - name: Download RD sensor
       get_url:
         url: "https://download.eset.com/com/eset/apps/business/era/rdsensor/latest/rdsensor-linux-x86_64.sh"
         dest: "/tmp/rdsensor-linux-x86_64.sh"
         mode: '0755'
 
-    - name: Set RD Sensor installer as executable
+    - name: RD Sensor installation file as an executable
       command: chmod +x /tmp/rdsensor-linux-x86_64.sh
       args:
         creates: /tmp/rdsensor-linux-x86_64.sh
 
-    - name: Run ESET RD Sensor installer with EULA and Product Improvement prompts
+    - name: Vykdyti RDsensor installer su 
       expect:
         command: "/tmp/rdsensor-linux-x86_64.sh"
         responses:
-          # If the installer prompts "More--", press 'q' to quit
           'More--': 'q\n'
-          # Accept the license agreement
           'Do you accept the license?': 'Y\n'
-          # Accept the product improvement program
-          'Do you want to participate in the Product improvement program?': 'Y\n'
-        timeout: 10  # Increased timeout to 20 minutes (1200 seconds)
+          'Do you want to participate in the Product improvement program?': 'N\n'
+        timeout: 40
       args:
         chdir: /tmp
 
-    - name: Ensure ESET RD Sensor is running
+    - name: Patikrinam ar RDsensorius veikia
       systemd:
         name: rdsensor
         state: started
         enabled: yes
 
-    - name: Verify RD Sensor service status
+    - name: Patikrinam statusą RDsensor
       command: systemctl status rdsensor
       register: rdsensor_status
       changed_when: false
