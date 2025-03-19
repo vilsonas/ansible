@@ -9,6 +9,7 @@
         name:
           - wget
           - curl
+          - expect
           - systemd
         state: present
 
@@ -23,18 +24,23 @@
         path: /tmp/rdsensor-linux-x86_64.sh
         mode: '0755'
 
-    - name: Run the installation script and auto-accept agreement
-      command: echo "yes" | bash /tmp/rdsensor-linux-x86_64.sh
+    - name: Run the installation script and automatically accept prompts
+      expect:
+        command: bash /tmp/rdsensor-linux-x86_64.sh
+        responses:
+          "Do you accept the license? [y/N]": "y"
+          "Do you want to participate in the Product improvement program? [Y/n]": "y"
+          "Do you want to continue with the installation? [y/N]": "y"
+        timeout: 600
       register: install_output
-      ignore_errors: yes
 
-    - name: Print installation script output
+    - name: Print installation log
       debug:
         var: install_output.stdout_lines
 
     - name: Ensure ESET RD Sensor service is running
       systemd:
-        name: eset-rdsensor
+        name: rdsensor
         state: started
         enabled: yes
       ignore_errors: yes
