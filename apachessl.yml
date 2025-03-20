@@ -91,4 +91,4 @@
 
     - name: Restart System
       reboot:
-        msg: "Reboot system"
+        msg: "Rebooting to apply hostname changes"
