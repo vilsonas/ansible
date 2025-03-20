@@ -8,10 +8,12 @@
     - name: Nustatyti hostname
       hostname:
         name: test.test.lt
+      notify: Restart System
 
     - name: Įtraukti į /etc/hosts
       lineinfile:
         path: /etc/hosts
+        regexp: "^192\\.168\\.195\\.102"
         line: "192.168.195.102 test.test.lt"
         state: present
 
@@ -30,11 +32,11 @@
         mode: '0755'
 
     - name: Generuoti SSL sertifikatus
-      shell: |
-        openssl req -x509 -nodes -days 365 -newkey rsa:2048 \
-          -keyout /etc/apache2/ssl/test.test.lt.key \
-          -out /etc/apache2/ssl/test.test.lt.crt \
-          -subj "/C=LT/ST=State/L=City/O=Organization/OU=Department/CN=test.test.lt"
+      command: >
+        openssl req -x509 -nodes -days 365 -newkey rsa:2048
+        -keyout /etc/apache2/ssl/test.test.lt.key
+        -out /etc/apache2/ssl/test.test.lt.crt
+        -subj "/C=LT/ST=State/L=City/O=Organization/OU=Department/CN=test.test.lt"
       args:
         creates: /etc/apache2/ssl/test.test.lt.crt
 
@@ -45,12 +47,7 @@
           # Peradresavimas iš HTTP į HTTPS
           <VirtualHost *:80>
               ServerName test.test.lt
-              Redirect permanent / https://test.test.lt/
-          </VirtualHost>
-
-          # Peradresavimas iš IP adresu pasiekto HTTP į HTTPS
-          <VirtualHost *:80>
-              ServerName 192.168.195.102
+              ServerAlias 192.168.195.102
               Redirect permanent / https://test.test.lt/
           </VirtualHost>
 
@@ -79,11 +76,11 @@
         mode: '0644'
 
     - name: Įjungti SSL modulį ir virtualų hostą
-      shell: |
-        a2enmod ssl
-        a2enconf ssl
-        a2ensite default-ssl.conf
-        systemctl restart apache2
+      command: a2enmod ssl
+      notify: Restart Apache
+
+    - name: Įjungti SSL virtualų hostą
+      command: a2ensite default-ssl.conf
       notify: Restart Apache
 
   handlers:
@@ -91,3 +88,7 @@
       service:
         name: apache2
         state: restarted
+
+    - name: Restart System
+      reboot:
+        msg: "Reboot system"
