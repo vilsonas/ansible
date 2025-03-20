@@ -1,69 +1,90 @@
-- name: Konfiguracija apache su SSL
-  hosts: test
+---
+- name: Configure Apache2 with SSL and force redirect from IP to hostname
+  hosts: db
   become: yes
-  tasks:
-    - name: Update package cache 
-      apt:
-        update_cache: yes
-      when: ansible_os_family == "Debian"
+  become_method: sudo
 
-    - name: Install apache2 ir openssl 
-      package:
+  tasks:
+    - name: Nustatyti hostname
+      hostname:
+        name: test.test.lt
+
+    - name: Įtraukti į /etc/hosts
+      lineinfile:
+        path: /etc/hosts
+        line: "192.168.195.102 test.test.lt"
+        state: present
+
+    - name: Įdiegti Apache2 ir OpenSSL
+      apt:
         name:
           - apache2
           - openssl
         state: present
+        update_cache: yes
 
-    - name: Apache start
-      service:
-        name: apache2
-        state: started
-        enabled: yes
+    - name: Sukurti SSL direktoriją
+      file:
+        path: /etc/apache2/ssl
+        state: directory
+        mode: '0755'
 
-    - name: Generuojam SSL
-      command: >
-        openssl req -x509 -nodes -days 365 -newkey rsa:2048
-        -keyout /etc/ssl/private/apache-selfsigned.key
-        -out /etc/ssl/certs/apache-selfsigned.crt
-        -subj "/C=US/ST=State/L=City/O=Organization/CN=192.168.195.104"
+    - name: Generuoti SSL sertifikatus
+      shell: |
+        openssl req -x509 -nodes -days 365 -newkey rsa:2048 \
+          -keyout /etc/apache2/ssl/test.test.lt.key \
+          -out /etc/apache2/ssl/test.test.lt.crt \
+          -subj "/C=LT/ST=State/L=City/O=Organization/OU=Department/CN=test.test.lt"
       args:
-        creates: /etc/ssl/certs/apache-selfsigned.crt
+        creates: /etc/apache2/ssl/test.test.lt.crt
 
-    - name: Apache virtual hostai
+    - name: Konfigūruoti Apache virtual hostus
       copy:
-        dest: /etc/apache2/sites-available/000-default.conf
+        dest: /etc/apache2/sites-available/default-ssl.conf
         content: |
+          # Peradresavimas iš HTTP į HTTPS
           <VirtualHost *:80>
-              ServerName 192.168.195.104
-              Redirect permanent / https://192.168.195.104/
+              ServerName test.test.lt
+              Redirect permanent / https://test.test.lt/
           </VirtualHost>
+
+          # Peradresavimas iš IP adresu pasiekto HTTP į HTTPS
+          <VirtualHost *:80>
+              ServerName 192.168.195.102
+              Redirect permanent / https://test.test.lt/
+          </VirtualHost>
+
+          # Peradresavimas iš IP adresu pasiekto HTTPS į hostname
           <VirtualHost *:443>
-              ServerName 192.168.195.104
+              ServerName 192.168.195.102
+              SSLEngine on
+              SSLCertificateFile /etc/apache2/ssl/test.test.lt.crt
+              SSLCertificateKeyFile /etc/apache2/ssl/test.test.lt.key
+              Redirect permanent / https://test.test.lt/
+          </VirtualHost>
+
+          # Pagrindinis HTTPS VirtualHost su hostname
+          <VirtualHost *:443>
+              ServerName test.test.lt
               DocumentRoot /var/www/html
               SSLEngine on
-              SSLCertificateFile /etc/ssl/certs/apache-selfsigned.crt
-              SSLCertificateKeyFile /etc/ssl/private/apache-selfsigned.key
+              SSLCertificateFile /etc/apache2/ssl/test.test.lt.crt
+              SSLCertificateKeyFile /etc/apache2/ssl/test.test.lt.key
           </VirtualHost>
-        mode: '0644'
-      notify: Restart Apache
 
-    - name: Enable Apache SSL 
-      command: a2enmod ssl
-      notify: Restart Apache
-
-    - name: Enable Apache Rewrite 
-      command: a2enmod rewrite
-      notify: Restart Apache
-
-    - name: Enable new site config
-      command: a2ensite 000-default.conf
-      notify: Restart Apache
-
-    - name: Pavyzdinis index
+    - name: Sukurti testinį index.html
       copy:
         dest: /var/www/html/index.html
-        content: "<h1>Apache testas su SSL</h1>"
+        content: "<h1>Apache testas su SSL ir IP redirect</h1>"
         mode: '0644'
+
+    - name: Įjungti SSL modulį ir virtualų hostą
+      shell: |
+        a2enmod ssl
+        a2enconf ssl
+        a2ensite default-ssl.conf
+        systemctl restart apache2
+      notify: Paleidziamas apache
 
   handlers:
     - name: Restart Apache
