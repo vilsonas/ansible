@@ -1,0 +1,73 @@
+- name: Configure Firewall Rules
+  hosts: test
+  become: true
+  vars:
+    firewall_type: iptables # Jei noriu naudoti ufw tiesiog pakeiciame i ufw
+
+  tasks:
+    - name: Instaliuojam firewall iptables arba ufw
+      package:
+        name: "{{ firewall_type == 'ufw' | ternary(['ufw'], ['iptables', 'iptables-persistent']) }}"
+        state: present
+
+    - name: Ištrinam esamas iptables taisykles
+      block:
+        - name: Flush existing iptables rules
+          iptables:
+            flush: yes
+
+        - name: Allow incoming SSH, HTTP, HTTPS naudodami iptables
+          iptables:
+            chain: INPUT
+            protocol: tcp
+            destination_port: "{{ item }}"
+            jump: ACCEPT
+          loop:
+            - 22
+            - 80
+            - 443
+
+        - name: Allow traffic on port 10500 from 192.168.192.10 naudodami iptables
+          iptables:
+            chain: INPUT
+            protocol: tcp
+            source: 192.168.192.10
+            destination_port: 10500
+            jump: ACCEPT
+
+        - name: Allow ICMP ping from 192.168.192.10 naudodami iptables
+          iptables:
+            chain: INPUT
+            protocol: icmp
+            source: 192.168.192.10
+            jump: ACCEPT
+
+        - name: Išsaugome iptables taisykles
+          command: netfilter-persistent save
+      when: firewall_type == 'iptables'
+
+    - name: Configure rules using ufw
+      block:
+        - name: Allow incoming SSH, HTTP, HTTPS using ufw
+          ufw:
+            rule: allow
+            port: "{{ item }}"
+            proto: tcp
+          loop:
+            - 22
+            - 80
+            - 443
+
+        - name: Allow traffic on port 10500 from 192.168.192.10 using ufw
+          ufw:
+            rule: allow
+            port: 10500
+            proto: tcp
+            from_ip: 192.168.192.10
+
+        - name: Allow ICMP ping from 192.168.192.10 using ufw
+          ufw:
+            rule: allow
+            proto: icmp
+            from_ip: 192.168.192.10
+      when: firewall_type == 'ufw'
