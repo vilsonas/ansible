@@ -14,6 +14,10 @@
       register: output_rules
       changed_when: false
 
-    - name: Rodomi praleisti portai
+    - name: Rodomi incoming praleisti portai
       debug:
-        msg: "{{ iptables_rules.stdout_lines | select('search', 'ACCEPT') | list }}"
+        msg: "{{ input_rules.stdout_lines | select('search', 'ACCEPT') | list }}"
+
+    - name: Rodomi outgoing praleisti portai
+      debug:
+        msg: "{{ output_rules.stdout_lines | select('search', 'ACCEPT') | list }}"
