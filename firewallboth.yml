@@ -5,7 +5,7 @@
     firewall_type: iptables # Jei noriu naudoti ufw tiesiog pakeiciame i ufw
 
   tasks:
-    - name: Debug firewall_type variable
+    - name: Atvaizduoja firewall pasirinkta tipa
       debug:
          msg: "Firewall type is {{ firewall_type }}"
     
@@ -48,6 +48,14 @@
 
         - name: Išsaugome iptables taisykles
           command: netfilter-persistent save
+
+        - name: Log ICMP packets for monitoring
+          iptables:
+            chain: INPUT
+            protocol: icmp
+            jump: LOG
+            log_prefix: "ICMP Packet: "
+            log_level: 4
       when: firewall_type == 'iptables'
 
     - name: Configure rules using ufw
@@ -62,14 +70,14 @@
             - 80
             - 443
 
-        - name: Allow traffic on port 10500 from 192.168.192.10 using ufw
+        - name: Allow traffic on port 10500 from 192.168.192.10 naudojant ufw
           ufw:
             rule: allow
             port: 10500
             proto: tcp
             from_ip: 192.168.192.10
 
-        - name: Allow ICMP ping from 192.168.192.10 using ufw
+        - name: Allow ICMP ping from 192.168.192.10 naudojant ufw
           ufw:
             rule: allow
             proto: icmp
