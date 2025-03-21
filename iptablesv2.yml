@@ -7,7 +7,7 @@
       package:
         name:
           - iptables
-      #    - iptables-persistent
+          - iptables-persistent
         state: present
 
     - name: Panaikinam visas esamas taisykles
