@@ -1,61 +1,81 @@
----
-- name: Konfiguruojam IPtables
+- name: Konfiguruojam iptables su states
   hosts: test
   become: true
   tasks:
-    - name: Instaliuojam iptables ir iptables-persistent
-      package:
-        name:
-          - iptables
-          - iptables-persistent
-        state: present
-
-    - name: Panaikinam visas esamas taisykles
+    - name: Flush existing iptables rules
       iptables:
         flush: yes
 
-    - name: Allow incoming SSH, HTTP, HTTPS
+    - name: Allow incoming HTTP and HTTPS traffic
       iptables:
         chain: INPUT
         protocol: tcp
         destination_port: "{{ item }}"
+        match: state
+        state: NEW,ESTABLISHED
         jump: ACCEPT
       loop:
         - 22
         - 80
         - 443
+        - 10050
 
-    - name: Allow outgoing DNS, HTTP, HTTPS, SSH, syslog
-      iptables:
-        chain: OUTPUT
-        protocol: "{{ item.proto }}"
-        destination_port: "{{ item.port }}"
-        jump: ACCEPT
-      loop:
-        - { proto: udp, port: 53 }
-        - { proto: tcp, port: 80 }
-        - { proto: tcp, port: 443 }
-        - { proto: tcp, port: 22 }
-        - { proto: udp, port: 514 }
-        - { proto: tcp, port: 6514 }
-
-    - name: Log ICMP monitoringui
+    - name: Allow incoming HTTP and HTTPS traffic
       iptables:
         chain: INPUT
-        protocol: icmp
-        jump: LOG
-        log_prefix: "ICMP Packet: "
-        log_level: 4
+        protocol: ICMP
+        match: state
+        state: NEW,ESTABLISHED
+        jump: ACCEPT
 
-    - name: Drop visus kitus traficus
+    - name: Allow outgoing traffic (SSH, HTTP, HTTPS, syslog)
+      iptables:
+        chain: OUTPUT
+        protocol: tcp
+        destination_port: "{{ item }}"
+        match: state
+        state: NEW,ESTABLISHED
+        jump: ACCEPT
+      loop:
+        - 22
+        - 80
+        - 443
+        - 5614
+
+    - name: Allow outgoing traffic (syslog udp)
+      iptables:
+        chain: OUTPUT
+        protocol: udp
+        destination_port: "{{ item }}"
+        match: state
+        state: NEW,ESTABLISHED
+        jump: ACCEPT
+      loop:
+        - 514
+
+    - name: Drop all įeinantį traficą
       iptables:
         chain: INPUT
         jump: DROP
 
-    - name: Save iptables rules (RedHat)
-      command: service iptables save
-      when: ansible_os_family == 'RedHat'
+    - name: Drop all išeinantį traficą
+      iptables:
+        chain: OUTPUT
+        jump: DROP
 
-    - name: Persist iptables rules (Debian/Ubuntu)
+    - name: Log dropped packets
+      iptables:
+        chain: INPUT
+        jump: LOG
+        log_prefix: "Dropped Packet in: "
+        log_level: 4
+
+    - name: Log dropped packets
+      iptables:
+        chain: OUTPUT
+        jump: LOG
+        log_prefix: "Dropped Packet out: "
+        log_level: 4
+
+    - name: Save iptables rules
       command: netfilter-persistent save
-      when: ansible_os_family == 'Debian'
