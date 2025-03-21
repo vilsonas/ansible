@@ -5,6 +5,10 @@
     firewall_type: iptables # Jei noriu naudoti ufw tiesiog pakeiciame i ufw
 
   tasks:
+    - name: Debug firewall_type variable
+      debug:
+         msg: "Firewall type is {{ firewall_type }}"
+    
     - name: Instaliuojam firewall iptables arba ufw
       package:
         name: "{{ firewall_type == 'ufw' | ternary(['ufw'], ['iptables', 'iptables-persistent']) }}"
