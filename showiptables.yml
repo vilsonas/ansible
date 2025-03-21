@@ -1,0 +1,14 @@
+---
+- name: Atvaizduojami praleisti portai iptables
+  hosts: test
+  become: yes
+  tasks:
+
+    - name: Gaunamos iptables taisykles
+      command: iptables -L INPUT -v -n
+      register: iptables_rules
+      changed_when: false
+
+    - name: Rodomi praleisti portai
+      debug:
+        msg: "{{ iptables_rules.stdout_lines | select('search', 'ACCEPT') | list }}"
