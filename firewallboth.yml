@@ -49,7 +49,7 @@
         - name: Išsaugome iptables taisykles
           command: netfilter-persistent save
 
-        - name: Log ICMP packets for monitoring
+        - name: Log ICMP paketus monitoringui
           iptables:
             chain: INPUT
             protocol: icmp
