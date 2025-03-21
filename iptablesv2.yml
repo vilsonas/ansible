@@ -1,0 +1,61 @@
+---
+- name: Configure IPTables
+  hosts: test
+  become: true
+  tasks:
+    - name: Instaliuojam iptables ir iptables-persistent
+      package:
+        name:
+          - iptables
+      #    - iptables-persistent
+        state: present
+
+    - name: Panaikinam visas esamas taisykles
+      iptables:
+        flush: yes
+
+    - name: Allow incoming SSH, HTTP, HTTPS
+      iptables:
+        chain: INPUT
+        protocol: tcp
+        destination_port: "{{ item }}"
+        jump: ACCEPT
+      loop:
+        - 22
+        - 80
+        - 443
+
+    - name: Allow outgoing DNS, HTTP, HTTPS, SSH, syslog
+      iptables:
+        chain: OUTPUT
+        protocol: "{{ item.proto }}"
+        destination_port: "{{ item.port }}"
+        jump: ACCEPT
+      loop:
+        - { proto: udp, port: 53 }
+        - { proto: tcp, port: 80 }
+        - { proto: tcp, port: 443 }
+        - { proto: tcp, port: 22 }
+        - { proto: udp, port: 514 }
+        - { proto: tcp, port: 6514 }
+
+    - name: Log ICMP monitoringui
+      iptables:
+        chain: INPUT
+        protocol: icmp
+        jump: LOG
+        log_prefix: "ICMP Packet: "
+        log_level: 4
+
+    - name: Drop visus kitus traficus
+      iptables:
+        chain: INPUT
+        jump: DROP
+
+    - name: Save iptables rules (RedHat)
+      command: service iptables save
+      when: ansible_os_family == 'RedHat'
+
+    - name: Persist iptables rules (Debian/Ubuntu)
+      command: netfilter-persistent save
+      when: ansible_os_family == 'Debian'
