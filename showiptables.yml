@@ -6,7 +6,12 @@
 
     - name: Gaunamos iptables taisykles
       command: iptables -L INPUT -v -n
-      register: iptables_rules
+      register: input_rules
+      changed_when: false
+
+    - name: Gaunamos iptables taisykles
+      command: iptables -L OUTPUT -v -n
+      register: output_rules
       changed_when: false
 
     - name: Rodomi praleisti portai
