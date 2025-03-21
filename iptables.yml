@@ -1,0 +1,53 @@
+---
+- name: Configure IPTables
+  hosts: test
+  become: true
+  tasks:
+    - name: Instaliuojam iptables
+      package:
+        name: iptables
+        state: present
+
+    - name: Flush existing iptables rules
+      command: iptables -F
+
+    - name: Allow incoming SSH (22/tcp)
+      command: iptables -A INPUT -p tcp --dport 22 -j ACCEPT
+
+    - name: Allow incoming HTTP (80/tcp)
+      command: iptables -A INPUT -p tcp --dport 80 -j ACCEPT
+
+    - name: Allow incoming HTTPS (443/tcp)
+      command: iptables -A INPUT -p tcp --dport 443 -j ACCEPT
+
+    - name: Allow outgoing DNS (53/udp)
+      command: iptables -A OUTPUT -p udp --dport 53 -j ACCEPT
+
+    - name: Allow outgoing HTTP (80/tcp)
+      command: iptables -A OUTPUT -p tcp --dport 80 -j ACCEPT
+
+    - name: Allow outgoing HTTPS (443/tcp)
+      command: iptables -A OUTPUT -p tcp --dport 443 -j ACCEPT
+
+    - name: Allow outgoing SSH (22/tcp)
+      command: iptables -A OUTPUT -p tcp --dport 22 -j ACCEPT
+
+    - name: Allow outgoing sysolog (514/udp)
+      command: iptables -A OUTPUT -p udp --dport 514 -j ACCEPT
+
+    - name: Allow outgoing sysolog (6514/tcp)
+      command: iptables -A OUTPUT -p tcp --dport 6514 -j ACCEPT
+
+    - name: Log ICMP packets for monitoring
+      command: iptables -A INPUT -p icmp -j LOG --log-prefix "ICMP Packet: " --log-level 4
+
+    - name: Drop all other incoming traffic
+      command: iptables -A INPUT -j DROP
+
+    - name: Save iptables rules
+      command: service iptables save
+      when: ansible_os_family == 'RedHat'
+
+    - name: Persist iptables rules (Debian/Ubuntu)
+      command: netfilter-persistent save
+      when: ansible_os_family == 'Debian'
