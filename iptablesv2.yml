@@ -54,6 +54,16 @@
         log_prefix: "ICMP Echo request: "
         log_level: 4
 
+
+    - name: Leisti ICMP 
+      iptables:
+        chain: INPUT
+        protocol: icmp
+        match: icmp
+        icmp_type: echo-request
+        source: 192.168.193.100
+        jump: ACCEPT
+
     - name: Blokuoti ICMP echo užklausas 
       iptables:
         chain: INPUT
