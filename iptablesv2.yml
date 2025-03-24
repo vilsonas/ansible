@@ -39,6 +39,14 @@
         icmp_type: echo-request
         jump: DROP
 
+
+    - name: Leisti output srautą ESTABLISHED
+      iptables:
+        chain: OUTPUT
+        match: conntrack
+        ctstate: ESTABLISHED
+        jump: ACCEPT
+
     - name: Leisti output srautą (SSH, HTTP, HTTPS, syslog TCP)
       iptables:
         chain: OUTPUT
@@ -85,6 +93,12 @@
       iptables:
         chain: OUTPUT
         policy: DROP
+
+    - name: Default policy OUTPUT block all
+      iptables:
+        chain: FORWARD
+        policy: DROP
+
 
   #  - name: Išsaugoti iptables taisykles
  #     command: netfilter-persistent save
