@@ -21,7 +21,7 @@
         - 443
         - 10050
 
-    - name: Log input ICMP echo užklausas (tipas 8)
+    - name: Log input ICMP echo užklausas
       iptables:
         chain: INPUT
         protocol: icmp
@@ -31,7 +31,7 @@
         log_prefix: "ICMP Echo request: "
         log_level: 4
 
-    - name: Blokuoti ICMP echo užklausas (tipas 8)
+    - name: Blokuoti ICMP echo užklausas 
       iptables:
         chain: INPUT
         protocol: icmp
