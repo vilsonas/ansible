@@ -10,8 +10,8 @@
     - name: Leisti užmegztas ir susijusias jungtis
       iptables:
         chain: INPUT
-        match: state
-        state: ESTABLISHED,RELATED
+        match: conntrack
+        connection_state: ESTABLISHED,RELATED
         jump: ACCEPT
 
     - name: Leisti įeinančius ryšius (SSH, HTTP, HTTPS, ZABBIX AGENT)
@@ -19,6 +19,8 @@
         chain: INPUT
         protocol: tcp
         destination_port: "{{ item }}"
+        match: state
+        state: NEW
         jump: ACCEPT
       loop:
         - 22
@@ -36,7 +38,7 @@
         log_prefix: "ICMP Echo Užklausa: "
         log_level: 4
 
-    - name: Blokuoti ICMP echo užklausas (tipas 8)
+    - name: Blokuoti ICMP echo užklausas
       iptables:
         chain: INPUT
         protocol: icmp
@@ -49,6 +51,8 @@
         chain: OUTPUT
         protocol: tcp
         destination_port: "{{ item }}"
+        match: state
+        state: NEW,ESTABLISHED
         jump: ACCEPT
       loop:
         - 22
