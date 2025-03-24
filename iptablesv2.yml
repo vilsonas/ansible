@@ -13,7 +13,7 @@
         protocol: tcp
         destination_port: "{{ item }}"
         match: conntrack
-        ctstate: ESTABLISHED
+        ctstate: NEW,ESTABLISHED
         jump: ACCEPT
       loop:
         - 22
