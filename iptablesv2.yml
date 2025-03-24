@@ -69,7 +69,7 @@
         log_prefix: "Dropped INPUT: "
         log_level: 4
 
-    - name: Blokuoti visą input srautą
+    - name: Default policy INPUT block all
       iptables:
         chain: INPUT
         policy: DROP
@@ -81,7 +81,7 @@
         log_prefix: "Dropped output: " 
         log_level: 4
 
-    - name: Blokuoti visą output srautą
+    - name: Default policy OUTPUT block all
       iptables:
         chain: OUTPUT
         policy: DROP
