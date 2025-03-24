@@ -13,7 +13,7 @@
         protocol: tcp
         destination_port: "{{ item }}"
         match: state
-        state: NEW
+        state: NEW,ESTABLISHED
         jump: ACCEPT
       loop:
         - 22
@@ -28,7 +28,7 @@
         match: icmp
         icmp_type: echo-request
         jump: LOG
-        log_prefix: "ICMP Echo Užklausa: "
+        log_prefix: "ICMP Echo request: "
         log_level: 4
 
     - name: Blokuoti ICMP echo užklausas
@@ -64,7 +64,7 @@
       iptables:
         chain: INPUT
         jump: LOG
-        log_prefix: "Atmestas paketas (įėjimas): "
+        log_prefix: "Dropped packet INPUT:  "
         log_level: 4
 
     - name: Blokuoti visą įeinantį srautą
@@ -76,7 +76,7 @@
       iptables:
         chain: OUTPUT
         jump: LOG
-        log_prefix: "Atmestas paketas (išėjimas): "
+        log_prefix: "Dropped packet OUTPUT:  "
         log_level: 4
 
     - name: Blokuoti visą išeinantį srautą
