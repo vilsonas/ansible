@@ -6,27 +6,36 @@
       iptables:
         flush: yes
 
-    - name: Allow incoming HTTP and HTTPS traffic
+    - name: Allow incoming (SSH,HTTP,HTTPS, ZABBIX AGENT)
       iptables:
         chain: INPUT
         protocol: tcp
         destination_port: "{{ item }}"
         match: state
         state: NEW,ESTABLISHED
-        jump: ACCEPT
+        action: ACCEPT
       loop:
         - 22
         - 80
         - 443
         - 10050
 
-    - name: Allow incoming HTTP and HTTPS traffic
+    - name: Allow incoming ICMP
       iptables:
         chain: INPUT
         protocol: ICMP
-        match: state
-        state: NEW,ESTABLISHED
-        jump: ACCEPT
+        match: icmp
+        icmp_type: echo-reply
+        action: ACCEPT
+
+
+    - name: Block echo request (ICMP type 8)
+      iptables:
+        chain: INPUT
+        protocol: icmp
+        match: icmp
+        icmp_type: echo-request
+        action: DROP
 
     - name: Allow outgoing traffic (SSH, HTTP, HTTPS, syslog)
       iptables:
@@ -35,7 +44,7 @@
         destination_port: "{{ item }}"
         match: state
         state: NEW,ESTABLISHED
-        jump: ACCEPT
+        action: ACCEPT
       loop:
         - 22
         - 80
@@ -49,7 +58,7 @@
         destination_port: "{{ item }}"
         match: state
         state: NEW,ESTABLISHED
-        jump: ACCEPT
+        action: ACCEPT
       loop:
         - 514
 
