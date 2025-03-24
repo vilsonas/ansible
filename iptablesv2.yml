@@ -3,17 +3,17 @@
   hosts: web
   become: true
   tasks:
-    - name: Delete default policies
+    - name: Ištrinti default policies
       iptables:
         chain: INPUT
         policy: ACCEPT
 
-    - name: Delete default policies
+    - name: Ištrinti default policies
       iptables:
         chain: OUTPUT
         policy: ACCEPT
 
-    - name: Delete default policies
+    - name: Ištrinti default policies
       iptables:
         chain: FORWARD
         policy: ACCEPT
