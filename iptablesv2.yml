@@ -1,3 +1,4 @@
+---
 - name: Konfiguruojam iptables su states
   hosts: test
   become: true
@@ -6,28 +7,47 @@
       iptables:
         flush: yes
 
-    - name: Allow incoming (SSH,HTTP,HTTPS, ZABBIX AGENT)
+    - name: Allow incoming (SSH, HTTP, HTTPS, ZABBIX AGENT)
       iptables:
         chain: INPUT
         protocol: tcp
         destination_port: "{{ item }}"
         match: state
         state: NEW,ESTABLISHED
-        action: ACCEPT
+        jump: ACCEPT
       loop:
         - 22
         - 80
         - 443
         - 10050
 
-    - name: Allow incoming ICMP
+    - name: Log incoming ICMP echo requests (type 8)
       iptables:
         chain: INPUT
-        protocol: ICMP
+        protocol: icmp
+        match: icmp
+        icmp_type: echo-request
+        jump: LOG
+        log_prefix: "ICMP Echo Request: "
+        log_level: 4
+
+    - name: Log incoming ICMP echo replies (type 0)
+      iptables:
+        chain: INPUT
+        protocol: icmp
         match: icmp
         icmp_type: echo-reply
-        action: ACCEPT
+        jump: LOG
+        log_prefix: "ICMP Echo Reply: "
+        log_level: 4
 
+    - name: Allow incoming ICMP echo reply (type 0)
+      iptables:
+        chain: INPUT
+        protocol: icmp
+        match: icmp
+        icmp_type: echo-reply
+        jump: ACCEPT
 
     - name: Block echo request (ICMP type 8)
       iptables:
@@ -35,7 +55,7 @@
         protocol: icmp
         match: icmp
         icmp_type: echo-request
-        action: DROP
+        jump: DROP
 
     - name: Allow outgoing traffic (SSH, HTTP, HTTPS, syslog)
       iptables:
@@ -44,7 +64,7 @@
         destination_port: "{{ item }}"
         match: state
         state: NEW,ESTABLISHED
-        action: ACCEPT
+        jump: ACCEPT
       loop:
         - 22
         - 80
@@ -58,31 +78,31 @@
         destination_port: "{{ item }}"
         match: state
         state: NEW,ESTABLISHED
-        action: ACCEPT
+        jump: ACCEPT
       loop:
         - 514
 
-    - name: Drop all įeinantį traficą
+    - name: Drop all įeinantį trafficą
       iptables:
         chain: INPUT
-        action: DROP
+        jump: DROP
 
-    - name: Drop all išeinantį traficą
+    - name: Drop all išeinantį trafficą
       iptables:
         chain: OUTPUT
-        action: DROP
+        jump: DROP
 
     - name: Log dropped packets
       iptables:
         chain: INPUT
-        action: LOG
+        jump: LOG
         log_prefix: "Dropped Packet in: "
         log_level: 4
 
     - name: Log dropped packets
       iptables:
         chain: OUTPUT
-        action: LOG
+        jump: LOG
         log_prefix: "Dropped Packet out: "
         log_level: 4
 
