@@ -3,6 +3,21 @@
   hosts: test
   become: true
   tasks:
+    - name: Delete default policies
+      iptables:
+        chain: INPUT
+        policy: ACCEPT
+
+    - name: Delete default policies
+      iptables:
+        chain: OUTPUT
+        policy: ACCEPT
+
+    - name: Delete default policies
+      iptables:
+        chain: FORWARD
+        policy: ACCEPT
+
     - name: Išvalyti esamas iptables taisykles
       iptables:
         flush: yes
