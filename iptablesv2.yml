@@ -44,7 +44,7 @@
       iptables:
         chain: OUTPUT
         match: conntrack
-        ctstate: NEW,ESTABLISHED
+        ctstate: ESTABLISHED
         jump: ACCEPT
 
     - name: Leisti output srautą (SSH, HTTP, HTTPS, syslog TCP)
