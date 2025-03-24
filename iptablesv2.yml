@@ -53,7 +53,7 @@
         - 443
         - 5614
 
-    - name: Leisti išeinantį UDP syslog srautą
+    - name: Leisti output UDP syslog srautą
       iptables:
         chain: OUTPUT
         protocol: udp
@@ -62,29 +62,29 @@
         ctstate: NEW,ESTABLISHED
         jump: ACCEPT
 
-    - name: Registruoti atmestus paketus įeinančiame sraute
+    - name: Monitoring atmestus paketus input sraute
       iptables:
         chain: INPUT
         jump: LOG
         log_prefix: "Dropped INPUT: "
         log_level: 4
 
-#    - name: Blokuoti visą input srautą
- #     iptables:
-  #      chain: INPUT
-   #     jump: DROP
+    - name: Blokuoti visą input srautą
+      iptables:
+        chain: INPUT
+        policy: DROP
 
-    - name: Registruoti atmestus paketus output sraute
+    - name: Monitoring atmestus paketus output sraute
       iptables:
         chain: OUTPUT
         jump: LOG
         log_prefix: "Dropped output: " 
         log_level: 4
 
-#    - name: Blokuoti visą output srautą
- #     iptables:
-  #      chain: OUTPUT
-   #     jump: DROP
+    - name: Blokuoti visą output srautą
+      iptables:
+        chain: OUTPUT
+        policy: DROP
 
-#    - name: Išsaugoti iptables taisykles
+  #  - name: Išsaugoti iptables taisykles
  #     command: netfilter-persistent save
