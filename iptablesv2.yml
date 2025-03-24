@@ -21,6 +21,14 @@
         - 443
         - 10050
 
+   - name: Leisti output ICMP echo-replay
+     iptables:
+       chain: OUTPUT
+       protocol: icmp
+       match: icmp
+       icmp_type: echo-reply
+       jump: ACCEPT   
+
     - name: Log input ICMP echo užklausas
       iptables:
         chain: INPUT
