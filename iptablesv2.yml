@@ -21,7 +21,7 @@
         - 443
         - 10050
 
-    - name: Registruoti įeinančius ICMP echo užklausas (tipas 8)
+    - name: Log įeinančius ICMP echo užklausas (tipas 8)
       iptables:
         chain: INPUT
         protocol: icmp
@@ -86,5 +86,5 @@
         chain: OUTPUT
         jump: DROP
 
-    - name: Išsaugoti iptables taisykles
-      command: netfilter-persistent save
+#    - name: Išsaugoti iptables taisykles
+ #     command: netfilter-persistent save
