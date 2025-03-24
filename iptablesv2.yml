@@ -7,13 +7,20 @@
       iptables:
         flush: yes
 
+    - name: Allow established and related connections
+      iptables:
+        chain: INPUT
+        match: state
+        state: ESTABLISHED,RELATED
+        jump: ACCEPT
+
     - name: Allow incoming (SSH, HTTP, HTTPS, ZABBIX AGENT)
       iptables:
         chain: INPUT
         protocol: tcp
         destination_port: "{{ item }}"
         match: state
-        state: NEW,ESTABLISHED
+        state: NEW
         jump: ACCEPT
       loop:
         - 22
@@ -31,24 +38,6 @@
         log_prefix: "ICMP Echo Request: "
         log_level: 4
 
-    - name: Log incoming ICMP echo replies (type 0)
-      iptables:
-        chain: INPUT
-        protocol: icmp
-        match: icmp
-        icmp_type: echo-reply
-        jump: LOG
-        log_prefix: "ICMP Echo Reply: "
-        log_level: 4
-
-    - name: Allow incoming ICMP echo reply (type 0)
-      iptables:
-        chain: INPUT
-        protocol: icmp
-        match: icmp
-        icmp_type: echo-reply
-        jump: ACCEPT
-
     - name: Block echo request (ICMP type 8)
       iptables:
         chain: INPUT
@@ -57,7 +46,7 @@
         icmp_type: echo-request
         jump: DROP
 
-    - name: Allow outgoing traffic (SSH, HTTP, HTTPS, syslog)
+    - name: Allow outgoing traffic (SSH, HTTP, HTTPS, syslog TCP)
       iptables:
         chain: OUTPUT
         protocol: tcp
@@ -71,40 +60,36 @@
         - 443
         - 5614
 
-    - name: Allow outgoing traffic (syslog udp)
+    - name: Allow outgoing UDP syslog traffic
       iptables:
         chain: OUTPUT
         protocol: udp
-        destination_port: "{{ item }}"
-        match: state
-        state: NEW,ESTABLISHED
+        destination_port: 514
         jump: ACCEPT
-      loop:
-        - 514
 
-    - name: Drop all įeinantį trafficą
-      iptables:
-        chain: INPUT
-        jump: DROP
-
-    - name: Drop all išeinantį trafficą
-      iptables:
-        chain: OUTPUT
-        jump: DROP
-
-    - name: Log dropped packets
+    - name: Log dropped packets in INPUT chain
       iptables:
         chain: INPUT
         jump: LOG
         log_prefix: "Dropped Packet in: "
         log_level: 4
 
-    - name: Log dropped packets
+    - name: Drop all incoming traffic
+      iptables:
+        chain: INPUT
+        jump: DROP
+
+    - name: Log dropped packets in OUTPUT chain
       iptables:
         chain: OUTPUT
         jump: LOG
         log_prefix: "Dropped Packet out: "
         log_level: 4
+
+    - name: Drop all outgoing traffic
+      iptables:
+        chain: OUTPUT
+        jump: DROP
 
     - name: Save iptables rules
       command: netfilter-persistent save
