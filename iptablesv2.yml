@@ -65,24 +65,24 @@
     - name: Drop all įeinantį traficą
       iptables:
         chain: INPUT
-        jump: DROP
+        action: DROP
 
     - name: Drop all išeinantį traficą
       iptables:
         chain: OUTPUT
-        jump: DROP
+        action: DROP
 
     - name: Log dropped packets
       iptables:
         chain: INPUT
-        jump: LOG
+        action: LOG
         log_prefix: "Dropped Packet in: "
         log_level: 4
 
     - name: Log dropped packets
       iptables:
         chain: OUTPUT
-        jump: LOG
+        action: LOG
         log_prefix: "Dropped Packet out: "
         log_level: 4
 
