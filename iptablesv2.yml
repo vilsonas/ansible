@@ -1,6 +1,6 @@
 ---
 - name: Konfigūruoti iptables su būsenomis
-  hosts: web
+  hosts: test
   become: true
   tasks:
     - name: Ištrinti default policies
