@@ -7,13 +7,18 @@
       iptables:
         flush: yes
 
+    - name: Leisti užmegztas ir susijusias jungtis
+      iptables:
+        chain: INPUT
+        match: state
+        state: ESTABLISHED,RELATED
+        jump: ACCEPT
+
     - name: Leisti įeinančius ryšius (SSH, HTTP, HTTPS, ZABBIX AGENT)
       iptables:
         chain: INPUT
         protocol: tcp
         destination_port: "{{ item }}"
-        match: state
-        state: NEW,ESTABLISHED
         jump: ACCEPT
       loop:
         - 22
@@ -28,10 +33,10 @@
         match: icmp
         icmp_type: echo-request
         jump: LOG
-        log_prefix: "ICMP Echo request: "
+        log_prefix: "ICMP Echo Užklausa: "
         log_level: 4
 
-    - name: Blokuoti ICMP echo užklausas
+    - name: Blokuoti ICMP echo užklausas (tipas 8)
       iptables:
         chain: INPUT
         protocol: icmp
@@ -44,8 +49,6 @@
         chain: OUTPUT
         protocol: tcp
         destination_port: "{{ item }}"
-        match: state
-        state: NEW,ESTABLISHED
         jump: ACCEPT
       loop:
         - 22
@@ -64,7 +67,7 @@
       iptables:
         chain: INPUT
         jump: LOG
-        log_prefix: "Dropped packet INPUT:  "
+        log_prefix: "Atmestas paketas (įėjimas): "
         log_level: 4
 
     - name: Blokuoti visą įeinantį srautą
@@ -76,7 +79,7 @@
       iptables:
         chain: OUTPUT
         jump: LOG
-        log_prefix: "Dropped packet OUTPUT:  "
+        log_prefix: "Atmestas paketas (išėjimas): "
         log_level: 4
 
     - name: Blokuoti visą išeinantį srautą
