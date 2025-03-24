@@ -7,7 +7,7 @@
       iptables:
         flush: yes
 
-    - name: Leisti įeinančius ryšius (SSH, HTTP, HTTPS, ZABBIX AGENT)
+    - name: Leisti input ryšius (SSH, HTTP, HTTPS, ZABBIX AGENT)
       iptables:
         chain: INPUT
         protocol: tcp
@@ -21,14 +21,14 @@
         - 443
         - 10050
 
-    - name: Log įeinančius ICMP echo užklausas (tipas 8)
+    - name: Log input ICMP echo užklausas (tipas 8)
       iptables:
         chain: INPUT
         protocol: icmp
         match: icmp
         icmp_type: echo-request
         jump: LOG
-        log_prefix: "ICMP Echo Užklausa: "
+        log_prefix: "ICMP Echo request: "
         log_level: 4
 
     - name: Blokuoti ICMP echo užklausas (tipas 8)
@@ -39,7 +39,7 @@
         icmp_type: echo-request
         jump: DROP
 
-    - name: Leisti išeinantį srautą (SSH, HTTP, HTTPS, syslog TCP)
+    - name: Leisti output srautą (SSH, HTTP, HTTPS, syslog TCP)
       iptables:
         chain: OUTPUT
         protocol: tcp
@@ -66,25 +66,25 @@
       iptables:
         chain: INPUT
         jump: LOG
-        log_prefix: "Atmestas paketas (įėjimas): "
+        log_prefix: "Dropped INPUT: "
         log_level: 4
 
-    - name: Blokuoti visą įeinantį srautą
-      iptables:
-        chain: INPUT
-        jump: DROP
+#    - name: Blokuoti visą input srautą
+ #     iptables:
+  #      chain: INPUT
+   #     jump: DROP
 
-    - name: Registruoti atmestus paketus išeinančiame sraute
+    - name: Registruoti atmestus paketus output sraute
       iptables:
         chain: OUTPUT
         jump: LOG
-        log_prefix: "Atmestas paketas (išėjimas): "
+        log_prefix: "Dropped output: " 
         log_level: 4
 
-    - name: Blokuoti visą išeinantį srautą
-      iptables:
-        chain: OUTPUT
-        jump: DROP
+#    - name: Blokuoti visą output srautą
+ #     iptables:
+  #      chain: OUTPUT
+   #     jump: DROP
 
 #    - name: Išsaugoti iptables taisykles
  #     command: netfilter-persistent save
