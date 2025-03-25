@@ -5,18 +5,12 @@
   tasks:
     - name: Ištrinti default policies
       iptables:
-        chain: INPUT
+        chain: "{{ item }}"
         policy: ACCEPT
-
-    - name: Ištrinti default policies
-      iptables:
-        chain: OUTPUT
-        policy: ACCEPT
-
-    - name: Ištrinti default policies
-      iptables:
-        chain: FORWARD
-        policy: ACCEPT
+      loop:
+        - INPUT
+        - OUTPUT
+        - FORWARD
 
     - name: Išvalyti esamas iptables taisykles
       iptables:
@@ -36,24 +30,6 @@
         - 443
         - 10050
 
-    - name: ICMP error messages
-      iptables:
-        chain: INPUT
-        protocol: icmp
-        match: conntrack
-        ctstate: RELATED
-        jump: ACCEPT
-
-    - name: Allow ICMP echo-request from specific IP
-      iptables:
-        chain: INPUT
-        protocol: icmp
-        icmp_type: echo-request
-        source: 192.168.193.100
-        match: conntrack
-        ctstate: NEW
-        jump: ACCEPT
-
     - name: Leisti output srautą (SSH, HTTP, HTTPS, syslog TCP)
       iptables:
         chain: OUTPUT
@@ -67,28 +43,34 @@
         - 80
         - 443
         - 5614
-        
-    - name: Leisti input srautą ESTABLISHED
+
+    - name: Leisti input ir output srautą ESTABLISHED
+      iptables:
+        chain: "{{ item }}"
+        match: conntrack
+        ctstate: ESTABLISHED
+        jump: ACCEPT
+      loop:
+        - INPUT
+        - OUTPUT
+
+    - name: Leisti ICMP echo-request iš specifinio IP
       iptables:
         chain: INPUT
+        protocol: icmp
+        icmp_type: echo-request
+        source: 192.168.193.100
         match: conntrack
-        ctstate: ESTABLISHED
+        ctstate: NEW
         jump: ACCEPT
 
-    - name: Leisti output srautą ESTABLISHED
-      iptables:
-        chain: OUTPUT
-        match: conntrack
-        ctstate: ESTABLISHED
-        jump: ACCEPT
-        
     - name: Leisti output UDP syslog srautą
       iptables:
         chain: OUTPUT
         protocol: udp
         destination_port: 514
         jump: ACCEPT
-        
+
     - name: Default policy INPUT block all
       iptables:
         chain: INPUT
@@ -104,19 +86,15 @@
         chain: FORWARD
         policy: DROP
 
-    - name: Monitoring atmestus paketus input sraute
+    - name: Monitoring atmestus paketus
       iptables:
-        chain: INPUT
+        chain: "{{ item }}"
         jump: LOG
-        log_prefix: "Dropped INPUT: "
+        log_prefix: "Dropped {{ item }}: "
         log_level: 1
-
-    - name: Monitoring atmestus paketus output sraute
-      iptables:
-        chain: OUTPUT
-        jump: LOG
-        log_prefix: "Dropped output: " 
-        log_level: 1
+      loop:
+        - INPUT
+        - OUTPUT
 
     - name: Išsaugoti iptables taisykles
       command: netfilter-persistent save
