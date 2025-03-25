@@ -1,4 +1,3 @@
----
 - name: Konfigūruoti iptables su būsenomis
   hosts: test
   become: true
