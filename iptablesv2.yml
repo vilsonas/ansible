@@ -61,7 +61,7 @@
         
     - name: Leisti input srautą ESTABLISHED
       iptables:
-        chain: input
+        chain: INPUT
         match: conntrack
         ctstate: ESTABLISHED
         jump: ACCEPT
@@ -103,13 +103,6 @@
         jump: LOG
         log_prefix: "Dropped output: " 
         log_level: 1
-
-
-    - name: Default policy OUTPUT block all
-      iptables:
-        chain: FORWARD
-        policy: DROP
-
 
   #  - name: Išsaugoti iptables taisykles
  #     command: netfilter-persistent save
