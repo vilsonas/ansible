@@ -90,6 +90,11 @@
         chain: OUTPUT
         policy: DROP
 
+    - name: Default policy FORWARD block all
+      iptables:
+        chain: FORWARD
+        policy: DROP
+
     - name: Monitoring atmestus paketus input sraute
       iptables:
         chain: INPUT
