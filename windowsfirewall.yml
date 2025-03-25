@@ -1,0 +1,90 @@
+---
+- name: Konfiguruojam Windows firewall
+  hosts: windows
+  tasks:
+  
+    - name: Allow inbound traffic on port 80 (HTTP)
+      ansible.windows.win_firewall_rule:
+        name: "Allow Inbound Port 80"
+        direction: in
+        action: allow
+        enabled: yes
+        profile: any
+        protocol: tcp
+        localport: 80
+
+    - name: Allow inbound traffic on port 22 (SSH)
+      ansible.windows.win_firewall_rule:
+        name: "Allow Inbound Port 443"
+        direction: in
+        action: allow
+        enabled: yes
+        profile: any
+        protocol: tcp
+        localport: 22
+
+    - name: Allow inbound traffic on port 443 (HTTPS)
+      ansible.windows.win_firewall_rule:
+        name: "Allow Inbound Port 443"
+        direction: in
+        action: allow
+        enabled: yes
+        profile: any
+        protocol: tcp
+        localport: 443
+
+    - name: Allow inbound traffic on port 53 (DNS)
+      ansible.windows.win_firewall_rule:
+        name: "Allow Inbound Port 53"
+        direction: in
+        action: allow
+        enabled: yes
+        profile: any
+        protocol: udp
+        localport: 53
+
+    - name: Allow outbound traffic on port 80 (HTTP)
+      ansible.windows.win_firewall_rule:
+        name: "Allow Outbound Port 80"
+        direction: out
+        action: allow
+        enabled: yes
+        profile: any
+        protocol: tcp
+        localport: 80
+
+    - name: Allow outbound traffic on port 443 (HTTPS)
+      ansible.windows.win_firewall_rule:
+        name: "Allow Outbound Port 443"
+        direction: out
+        action: allow
+        enabled: yes
+        profile: any
+        protocol: tcp
+        localport: 443
+
+    - name: Allow outbound traffic on port 53 (DNS)
+      ansible.windows.win_firewall_rule:
+        name: "Allow Outbound Port 53"
+        direction: out
+        action: allow
+        enabled: yes
+        profile: any
+        protocol: udp
+        localport: 53
+
+    - name: Block all inbound traffic
+      ansible.windows.win_firewall_rule:
+        name: "Block All Inbound"
+        direction: in
+        action: block
+        enabled: yes
+        profile: any
+
+    - name: Block all outbound traffic
+      ansible.windows.win_firewall_rule:
+        name: "Block All Outbound"
+        direction: out
+        action: block
+        enabled: yes
+        profile: any
