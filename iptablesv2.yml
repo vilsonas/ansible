@@ -52,7 +52,7 @@
         icmp_type: echo-request
         source: 192.168.193.100
         match: conntrack
-        ctstate: NEW,ESTABLISHED
+        ctstate: NEW
         jump: ACCEPT
 
     - name: Leisti output srautą (SSH, HTTP, HTTPS, syslog TCP)
