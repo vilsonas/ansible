@@ -109,5 +109,5 @@
         log_prefix: "Dropped output: " 
         log_level: 1
 
-  #  - name: Išsaugoti iptables taisykles
- #     command: netfilter-persistent save
+    - name: Išsaugoti iptables taisykles
+      command: netfilter-persistent save
