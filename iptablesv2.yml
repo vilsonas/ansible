@@ -40,7 +40,6 @@
       iptables:
         chain: INPUT
         protocol: icmp
-        state: present
         match: conntrack
         ctstate: RELATED
         jump: ACCEPT
