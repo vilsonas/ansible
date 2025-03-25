@@ -22,56 +22,12 @@
       iptables:
         flush: yes
 
-    - name: Leisti input ryšius (SSH, HTTP, HTTPS, ZABBIX AGENT)
+    - name: Leisti input srautą ESTABLISHED
       iptables:
-        chain: INPUT
-        protocol: tcp
-        destination_port: "{{ item }}"
+        chain: input
         match: conntrack
-        ctstate: NEW,ESTABLISHED
+        ctstate: ESTABLISHED
         jump: ACCEPT
-      loop:
-        - 22
-        - 80
-        - 443
-        - 10050
-
-    - name: Leisti output ICMP echo-replay
-      iptables:
-        chain: OUTPUT
-        protocol: icmp
-        match: icmp
-        icmp_type: echo-reply
-        jump: ACCEPT   
-
-    - name: Log input ICMP echo užklausas
-      iptables:
-        chain: INPUT
-        protocol: icmp
-        match: icmp
-        icmp_type: echo-request
-        jump: LOG
-        log_prefix: "ICMP Echo request: "
-        log_level: 4
-
-
-    - name: Leisti ICMP 
-      iptables:
-        chain: INPUT
-        protocol: icmp
-        match: icmp
-        icmp_type: echo-request
-        source: 192.168.193.100
-        jump: ACCEPT
-
-    - name: Blokuoti ICMP echo užklausas 
-      iptables:
-        chain: INPUT
-        protocol: icmp
-        match: icmp
-        icmp_type: echo-request
-        jump: DROP
-
 
     - name: Leisti output srautą ESTABLISHED
       iptables:
@@ -80,13 +36,36 @@
         ctstate: ESTABLISHED
         jump: ACCEPT
 
+    - name: Leisti input ryšius (SSH, HTTP, HTTPS, ZABBIX AGENT)
+      iptables:
+        chain: INPUT
+        protocol: tcp
+        destination_port: "{{ item }}"
+        match: conntrack
+        ctstate: NEW
+        jump: ACCEPT
+      loop:
+        - 22
+        - 80
+        - 443
+        - 10050
+
+    - name: ICMP error messages
+      iptables:
+        chain: INPUT
+        protocol: icmp
+        state: present
+        match: conntrack
+        ctstate: RELATED
+        jump: ACCEPT
+
     - name: Leisti output srautą (SSH, HTTP, HTTPS, syslog TCP)
       iptables:
         chain: OUTPUT
         protocol: tcp
         destination_port: "{{ item }}"
         match: conntrack
-        ctstate: NEW,ESTABLISHED
+        ctstate: NEW
         jump: ACCEPT
       loop:
         - 22
@@ -100,32 +79,33 @@
         protocol: udp
         destination_port: 514
         match: conntrack
-        ctstate: NEW,ESTABLISHED
+        ctstate: ESTABLISHED
         jump: ACCEPT
+        
+    - name: Default policy INPUT block all
+      iptables:
+        chain: INPUT
+        policy: DROP
+
+    - name: Default policy OUTPUT block all
+      iptables:
+        chain: OUTPUT
+        policy: DROP
 
     - name: Monitoring atmestus paketus input sraute
       iptables:
         chain: INPUT
         jump: LOG
         log_prefix: "Dropped INPUT: "
-        log_level: 4
-
-    - name: Default policy INPUT block all
-      iptables:
-        chain: INPUT
-        policy: DROP
+        log_level: 1
 
     - name: Monitoring atmestus paketus output sraute
       iptables:
         chain: OUTPUT
         jump: LOG
         log_prefix: "Dropped output: " 
-        log_level: 4
+        log_level: 1
 
-    - name: Default policy OUTPUT block all
-      iptables:
-        chain: OUTPUT
-        policy: DROP
 
     - name: Default policy OUTPUT block all
       iptables:
