@@ -78,8 +78,6 @@
         chain: OUTPUT
         protocol: udp
         destination_port: 514
-        match: conntrack
-        ctstate: ESTABLISHED
         jump: ACCEPT
         
     - name: Default policy INPUT block all
