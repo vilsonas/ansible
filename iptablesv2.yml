@@ -45,6 +45,16 @@
         ctstate: RELATED
         jump: ACCEPT
 
+    - name: Allow ICMP echo-request from specific IP
+      iptables:
+        chain: INPUT
+        protocol: icmp
+        icmp_type: echo-request
+        source: 192.168.193.100
+        match: conntrack
+        ctstate: NEW,ESTABLISHED
+        jump: ACCEPT
+
     - name: Leisti output srautą (SSH, HTTP, HTTPS, syslog TCP)
       iptables:
         chain: OUTPUT
