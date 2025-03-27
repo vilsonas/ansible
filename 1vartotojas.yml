@@ -8,7 +8,7 @@
         name: "{{ item.username }}"
         shell: /bin/bash
         create_home: yes
-        password: "{{ sudo_password }}
+        password: "{{ sudo_password }}"
         state: present
       loop:
         - { username: "semaphore" }
