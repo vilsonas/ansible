@@ -8,6 +8,8 @@
         name: "{{ item.username }}"
         shell: /bin/bash
         create_home: yes
+        password: "{{ sudo_password }}
+        state: present
       loop:
         - { username: "semaphore" }
 
@@ -39,13 +41,6 @@
       loop:
         - { username: "semaphore" }
 
-    - name: Leidžiu vartotojams vykdyti sudo be slaptažodžio
-      ansible.builtin.copy:
-        content: "{{ item.username }} ALL=(ALL) NOPASSWD:ALL"
-        dest: "/etc/sudoers.d/{{ item.username }}"
-        mode: '0440'
-      loop:
-        - { username: "semaphore" }
 
   handlers:
     - name: Restart SSH
