@@ -13,7 +13,7 @@
         name: "{{ item.username }}"
         shell: /bin/bash
         create_home: yes
-        password: "{{ sudo_password }}"
+        password: "{{ sudo_password | password_hash('sha512') }}"
         state: present
       loop:
         - { username: "semaphore" }
