@@ -1,4 +1,4 @@
-- name: Konfigūruoti iptables su būsenomis
+- name: Konfigūruoti iptables su būsenomis ir įjungti Wazuh Agent prievadus
   hosts: test
   become: true
   tasks:
@@ -15,7 +15,7 @@
       iptables:
         flush: yes
 
-    - name: Leisti input ryšius (SSH, HTTP, HTTPS, ZABBIX AGENT)
+    - name: Leisti input ryšius (SSH, HTTP, HTTPS, ZABBIX AGENT, WAZUH AGENT)
       iptables:
         chain: INPUT
         protocol: tcp
@@ -29,7 +29,7 @@
         - 443
         - 10050
 
-    - name: Leisti output srautą (SSH, HTTP, HTTPS, syslog TCP)
+    - name: Leisti output srautą (SSH, HTTP, HTTPS, syslog TCP, WAZUH AGENT)
       iptables:
         chain: OUTPUT
         protocol: tcp
@@ -42,6 +42,8 @@
         - 80
         - 443
         - 5614
+        - 1514
+        - 1515
 
     - name: Leisti output DNS TCP
       iptables:
