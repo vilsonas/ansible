@@ -1,5 +1,5 @@
 - name: Konfigūruoti iptables su būsenomis ir įjungti Wazuh Agent prievadus
-  hosts: test
+  hosts: debian
   become: true
   tasks:
     - name: Ištrinti default policies
