@@ -35,7 +35,7 @@
     # Wait for a moment to ensure the configuration file has been created
     - name: Wait for the configuration file to be created
       wait_for:
-        path: /etc/zabbix/zabbix_agentd.conf
+        path: /etc/zabbix/zabbix_agent2.conf
         state: present
         delay: 5
         timeout: 30
@@ -50,7 +50,7 @@
     # Set the Zabbix agent hostname
     - name: Set the Zabbix agent hostname
       lineinfile:
-        path: "/etc/zabbix/zabbix_agentd.conf"
+        path: "/etc/zabbix/zabbix_agent2.conf"
         regexp: '^Hostname='
         line: "Hostname={{ ansible_hostname }}"
 
