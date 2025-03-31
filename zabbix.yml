@@ -35,24 +35,39 @@
         state: present
         update_cache: yes
 
+    # Start the Zabbix Agent 2 service to create the default config file
+    - name: Start Zabbix Agent 2 service to create the configuration file
+      systemd:
+        name: zabbix-agent2
+        state: started
+        enabled: yes
+
+    # Wait for a moment to ensure the configuration file has been created
+    - name: Wait for the configuration file to be created
+      wait_for:
+        path: /etc/zabbix/zabbix_agentd.conf
+        state: present
+        delay: 5
+        timeout: 30
+
     # Configure Zabbix server IP in agent configuration
     - name: Configure Zabbix server IP in agent configuration
       lineinfile:
-        path: "{{ zabbix_agent_config_file }}"
+        path: "/etc/zabbix/zabbix_agentd.conf"
         regexp: '^Server='
         line: "Server={{ zabbix_server_ip }}"
 
     # Set the Zabbix agent hostname
     - name: Set the Zabbix agent hostname
       lineinfile:
-        path: "{{ zabbix_agent_config_file }}"
+        path: "/etc/zabbix/zabbix_agentd.conf"
         regexp: '^Hostname='
         line: "Hostname={{ ansible_hostname }}"
 
     # Configure PSK encryption in the Zabbix agent configuration
     - name: Configure PSK encryption
       lineinfile:
-        path: "{{ zabbix_agent_config_file }}"
+        path: "/etc/zabbix/zabbix_agentd.conf"
         line: "{{ item }}"
         create: yes
       loop:
