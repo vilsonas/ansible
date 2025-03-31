@@ -1,6 +1,5 @@
----
-- name: Install zabbix 
-  hosts: y)
+- name: Install Zabbix 
+  hosts: y
   become: yes  
 
   tasks:
@@ -8,29 +7,30 @@
       ansible.builtin.include_vars:
         file: /etc/ansible/zabbix_vars.yml
 
-    - name: Pridedu zabbix biblioteka
+    - name: Add the Zabbix repository for 7.2
       apt:
-        deb: "https://repo.zabbix.com/zabbix/6.0/debian/zabbix-release_6.0-1+debian{{ ansible_lsb.codename }}_all.deb"
+        deb: "https://repo.zabbix.com/zabbix/7.2/debian/zabbix-release_7.2-1+debian{{ ansible_lsb.codename }}_all.deb"
+        update_cache: yes
 
-    - name: Install Zabbix agent
+    - name: Install Zabbix Agent 2 (7.2)
       apt:
-        name: zabbix-agent
+        name: zabbix-agent2
         state: present
         update_cache: yes
 
-    - name: Nustatau Zabbix serverio IP adresą
+    - name: Configure Zabbix server IP in agent configuration
       lineinfile:
         path: "{{ zabbix_agent_config_file }}"
         regexp: '^Server='
         line: "Server={{ zabbix_server_ip }}"
 
-    - name: Nustatau Zabbix agent hostname
+    - name: Set the Zabbix agent hostname
       lineinfile:
         path: "{{ zabbix_agent_config_file }}"
         regexp: '^Hostname='
         line: "Hostname={{ ansible_hostname }}"
 
-    - name: Konfigūruoju PSK šifravimą
+    - name: Configure PSK encryption
       lineinfile:
         path: "{{ zabbix_agent_config_file }}"
         line: "{{ item }}"
@@ -41,9 +41,8 @@
         - "TLSPSKIdentity={{ psk_identity }}"
         - "TLSPSK={{ psk_key }}"
 
-    - name: Restart Zabbix agent service
+    - name: Restart Zabbix Agent 2 service
       systemd:
-        name: zabbix-agent
+        name: zabbix-agent2
         state: restarted
         enabled: yes
-
