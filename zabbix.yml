@@ -7,16 +7,6 @@
       ansible.builtin.include_vars:
         file: /etc/ansible/zabbix_vars.yml
 
-    # Clean APT cache to avoid potential issues with old package metadata
-    - name: Clean APT cache
-      command: apt-get clean
-
-    # Update APT package cache
-    - name: Update APT package cache
-      apt:
-        update_cache: yes
-        cache_valid_time: 3600  # 1 hour to ensure the cache is valid
-
     # Download the Zabbix repository .deb package
     - name: Download Zabbix 7.2 repository .deb package
       get_url:
@@ -67,7 +57,7 @@
     # Configure PSK encryption in the Zabbix agent configuration
     - name: Configure PSK encryption
       lineinfile:
-        path: "/etc/zabbix/zabbix_agentd.conf"
+        path: "/etc/zabbix/zabbix_agent2.conf"
         line: "{{ item }}"
         create: yes
       loop:
