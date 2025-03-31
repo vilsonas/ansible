@@ -3,11 +3,11 @@
   hosts: y)
   become: yes  
 
-  vars:
-    zabbix_server_ip: "zabbix.keliuprieziura.lt"  # 
-    zabbix_agent_config_file: "/etc/zabbix/zabbix_agentd.conf"
-
   tasks:
+    - name: Include encrypted vars
+      ansible.builtin.include_vars:
+        file: /etc/ansible/zabbix_vars.yml
+
     - name: Pridedu zabbix biblioteka
       apt:
         deb: "https://repo.zabbix.com/zabbix/6.0/debian/zabbix-release_6.0-1+debian{{ ansible_lsb.codename }}_all.deb"
@@ -24,14 +24,26 @@
         regexp: '^Server='
         line: "Server={{ zabbix_server_ip }}"
 
-    - name: Nustatau zabbix agent hostname
+    - name: Nustatau Zabbix agent hostname
       lineinfile:
         path: "{{ zabbix_agent_config_file }}"
         regexp: '^Hostname='
         line: "Hostname={{ ansible_hostname }}"
+
+    - name: Konfigūruoju PSK šifravimą
+      lineinfile:
+        path: "{{ zabbix_agent_config_file }}"
+        line: "{{ item }}"
+        create: yes
+      loop:
+        - "TLSConnect=psk"
+        - "TLSAccept=psk"
+        - "TLSPSKIdentity={{ psk_identity }}"
+        - "TLSPSK={{ psk_key }}"
 
     - name: Restart Zabbix agent service
       systemd:
         name: zabbix-agent
         state: restarted
         enabled: yes
+
