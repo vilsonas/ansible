@@ -1,5 +1,5 @@
-- name: Install Zabbix 
-  hosts: test
+- name: Install Zabbix Agent 2
+  hosts: y
   become: yes  
 
   tasks:
@@ -7,29 +7,44 @@
       ansible.builtin.include_vars:
         file: /etc/ansible/zabbix_vars.yml
 
+    # Clean APT cache to avoid potential issues with old package metadata
+    - name: Clean APT cache
+      command: apt-get clean
+
+    # Update the APT package cache
+    - name: Update APT package cache
+      apt:
+        update_cache: yes
+        cache_valid_time: 3600  # 1 hour to ensure the cache is valid
+
+    # Add the Zabbix repository for version 7.2
     - name: Add the Zabbix repository for 7.2
       apt:
         deb: "https://repo.zabbix.com/zabbix/7.2/debian/zabbix-release_7.2-1+debian{{ ansible_lsb.codename }}_all.deb"
         update_cache: yes
 
+    # Install Zabbix Agent 2 (version 7.2)
     - name: Install Zabbix Agent 2 (7.2)
       apt:
         name: zabbix-agent2
         state: present
         update_cache: yes
 
+    # Configure Zabbix server IP in agent configuration
     - name: Configure Zabbix server IP in agent configuration
       lineinfile:
         path: "{{ zabbix_agent_config_file }}"
         regexp: '^Server='
         line: "Server={{ zabbix_server_ip }}"
 
+    # Set the Zabbix agent hostname
     - name: Set the Zabbix agent hostname
       lineinfile:
         path: "{{ zabbix_agent_config_file }}"
         regexp: '^Hostname='
         line: "Hostname={{ ansible_hostname }}"
 
+    # Configure PSK encryption in the Zabbix agent configuration
     - name: Configure PSK encryption
       lineinfile:
         path: "{{ zabbix_agent_config_file }}"
@@ -41,6 +56,7 @@
         - "TLSPSKIdentity={{ psk_identity }}"
         - "TLSPSK={{ psk_key }}"
 
+    # Restart Zabbix Agent 2 service to apply changes
     - name: Restart Zabbix Agent 2 service
       systemd:
         name: zabbix-agent2
