@@ -1,0 +1,26 @@
+- name: Install and configure auditd
+  hosts: debian
+  become: true
+  tasks:
+
+    - name: Update apt cache
+      apt:
+        update_cache: yes
+
+    - name: Install auditd ir audispd-plugins
+      apt:
+        name:
+          - auditd
+          - audispd-plugins
+        state: present
+
+    - name: Kopijuojam taisykles
+      copy:
+        src: /etc/ansibleaudit.rules  # Path to the file on the Ansible server
+        dest: /etc/audit/rules.d/audit.rules  # Destination path on remote machines
+
+    - name: Restart auditd service
+      systemd:
+        name: auditd
+        state: restarted
+        enabled: yes
