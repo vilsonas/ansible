@@ -7,25 +7,24 @@
       ansible.builtin.include_vars:
         file: /etc/ansible/zabbix_vars.yml
 
-    # Download the Zabbix repository .deb package
-    - name: Download Zabbix 7.2 repository .deb package
+    
+    - name: Download zabbix 7.2 repository
       get_url:
         url: "https://repo.zabbix.com/zabbix/7.2/release/debian/pool/main/z/zabbix-release/zabbix-release_latest_7.2+debian12_all.deb"
         dest: "/tmp/zabbix-release_latest_7.2+debian12_all.deb"
 
-    # Install the Zabbix repository .deb package using dpkg
-    - name: Install Zabbix repository .deb package
+    
+    - name: Install repository .deb
       command: dpkg -i /tmp/zabbix-release_latest_7.2+debian12_all.deb
       become: yes
 
-    # Install Zabbix Agent 2 (7.2)
-    - name: Install Zabbix Agent 2 (7.2)
+
+    - name: Install Zabbix Agent 2 7.2
       apt:
         name: zabbix-agent2
         state: present
         update_cache: yes
 
-    # Start the Zabbix Agent 2 service to create the configuration file
     - name: Start Zabbix Agent 2 service to create the configuration file
       systemd:
         name: zabbix-agent2
@@ -40,22 +39,37 @@
         delay: 5
         timeout: 30
 
-    # Configure Zabbix server IP in agent configuration
-    - name: Configure Zabbix server IP in agent configuration
+
+    - name: Nustatom zabbix serverio IP 
       lineinfile:
         path: "/etc/zabbix/zabbix_agent2.conf"
         regexp: '^Server='
         line: "Server={{ zabbix_server_ip }}"
 
-    # Set the Zabbix agent hostname
-    - name: Set the Zabbix agent hostname
+
+    - name: Zabbix agento hostname
       lineinfile:
         path: "/etc/zabbix/zabbix_agent2.conf"
         regexp: '^Hostname='
         line: "Hostname={{ ansible_hostname }}"
 
-    # Create a separate PSK file for Zabbix user (with specific filename)
-    - name: Create PSK file for Zabbix user
+    - name: Igalinam PSK encryption  
+      block:
+        - name: Set TLSConnect=psk in the Zabbix agent configuration
+          lineinfile:
+            path: "/etc/zabbix/zabbix_agent2.conf"
+            regexp: '^TLSConnect='
+            line: "TLSConnect=psk"
+            create: yes
+
+        - name: Set TLSAccept=psk in the Zabbix agent configuration
+          lineinfile:
+            path: "/etc/zabbix/zabbix_agent2.conf"
+            regexp: '^TLSAccept='
+            line: "TLSAccept=psk"
+            create: yes
+
+    - name: Sukuriam PSK zabbix useriui
       copy:
         dest: "/etc/zabbix/zabbix_agentd.psk"
         content: "{{ psk_key }}"
@@ -63,14 +77,22 @@
         group: zabbix
         mode: '0600'
 
-    # Configure PSK encryption in the Zabbix agent configuration to use the PSK file
-    - name: Configure PSK encryption to use PSK file
-      lineinfile:
-        path: "/etc/zabbix/zabbix_agent2.conf"
-        line: "TLSPSKFile=/etc/zabbix/zabbix_agentd.psk"
-        create: yes
+    - name: Konfiguruojam zabbix konfiga
+      block:
+        - name: Set TLSPSKIdentity in the Zabbix agent configuration
+          lineinfile:
+            path: "/etc/zabbix/zabbix_agent2.conf"
+            regexp: '^TLSPSKIdentity='
+            line: "TLSPSKIdentity={{ psk_identity }}"
+            create: yes
 
-    # Restart Zabbix Agent 2 service to apply changes
+        - name: Konfiguruojam zabbix konfiga 
+          lineinfile:
+            path: "/etc/zabbix/zabbix_agent2.conf"
+            regexp: '^TLSPSKFile='
+            line: "TLSPSKFile=/etc/zabbix/zabbix_agentd.psk"
+            create: yes
+
     - name: Restart Zabbix Agent 2 service
       systemd:
         name: zabbix-agent2
