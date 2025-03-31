@@ -11,13 +11,19 @@
     - name: Clean APT cache
       command: apt-get clean
 
-    # Update the APT package cache
+    # Update APT package cache
     - name: Update APT package cache
       apt:
         update_cache: yes
         cache_valid_time: 3600  # 1 hour to ensure the cache is valid
 
-    # Add the Zabbix repository for version 7.2
+    # Remove any old Zabbix repositories to prevent conflicts
+    - name: Remove old Zabbix repositories (if any)
+      apt:
+        name: "zabbix-release"
+        state: absent
+
+    # Add the Zabbix repository for 7.2
     - name: Add the Zabbix repository for 7.2
       apt:
         deb: "https://repo.zabbix.com/zabbix/7.2/debian/zabbix-release_7.2-1+debian{{ ansible_lsb.codename }}_all.deb"
