@@ -43,7 +43,7 @@
     # Configure Zabbix server IP in agent configuration
     - name: Configure Zabbix server IP in agent configuration
       lineinfile:
-        path: "/etc/zabbix/zabbix_agentd.conf"
+        path: "/etc/zabbix/zabbix_agent2.conf"
         regexp: '^Server='
         line: "Server={{ zabbix_server_ip }}"
 
