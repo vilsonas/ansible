@@ -1,5 +1,5 @@
 - name: Install Zabbix Agent 2
-  hosts: y
+  hosts: test
   become: yes  
 
   tasks:
