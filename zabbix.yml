@@ -1,5 +1,5 @@
 - name: Install Zabbix 
-  hosts: y
+  hosts: test
   become: yes  
 
   tasks:
