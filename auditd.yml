@@ -16,7 +16,7 @@
 
     - name: Kopijuojam taisykles
       copy:
-        src: /etc/ansibleaudit.rules  # Path to the file on the Ansible server
+        src: /etc/ansible/audit.rules  # Path to the file on the Ansible server
         dest: /etc/audit/rules.d/audit.rules  # Destination path on remote machines
 
     - name: Restart auditd service
