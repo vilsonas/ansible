@@ -25,7 +25,7 @@
         state: present
         update_cache: yes
 
-    # Start the Zabbix Agent 2 service to create the default config file
+    # Start the Zabbix Agent 2 service to create the configuration file
     - name: Start Zabbix Agent 2 service to create the configuration file
       systemd:
         name: zabbix-agent2
@@ -54,17 +54,22 @@
         regexp: '^Hostname='
         line: "Hostname={{ ansible_hostname }}"
 
-    # Configure PSK encryption in the Zabbix agent configuration
-    - name: Configure PSK encryption
+    # Create a separate PSK file for the Zabbix user
+    - name: Create PSK file for Zabbix user
+      copy:
+        dest: "/etc/zabbix/pskfile"
+        content: "{{ psk_key }}"
+        owner: zabbix
+        group: zabbix
+        mode: '0600'
+        validate: 'psk file content'  
+
+    # Configure PSK encryption in the Zabbix agent configuration to use the PSK file
+    - name: Configure PSK encryption to use PSK file
       lineinfile:
         path: "/etc/zabbix/zabbix_agent2.conf"
-        line: "{{ item }}"
+        line: "TLSPSKFile=/etc/zabbix/pskfile"
         create: yes
-      loop:
-        - "TLSConnect=psk"
-        - "TLSAccept=psk"
-        - "TLSPSKIdentity={{ psk_identity }}"
-        - "TLSPSK={{ psk_key }}"
 
     # Restart Zabbix Agent 2 service to apply changes
     - name: Restart Zabbix Agent 2 service
