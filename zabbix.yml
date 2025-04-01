@@ -14,7 +14,7 @@
         dest: "/tmp/zabbix-release_latest_7.2+debian12_all.deb"
 
     
-    - name: Install repository .deb
+    - name: instaliuojam repository .deb
       command: dpkg -i /tmp/zabbix-release_latest_7.2+debian12_all.deb
       become: yes
 
@@ -25,13 +25,12 @@
         state: present
         update_cache: yes
 
-    - name: Start Zabbix Agent 2 service to create the configuration file
+    - name: Paleidziame Zabbix Agent 2
       systemd:
         name: zabbix-agent2
         state: started
         enabled: yes
 
-    # Wait for a moment to ensure the configuration file has been created
     - name: Wait for the configuration file to be created
       wait_for:
         path: /etc/zabbix/zabbix_agent2.conf
@@ -62,7 +61,7 @@
             line: "TLSConnect=psk"
             create: yes
 
-        - name: Set TLSAccept=psk in the Zabbix agent configuration
+        - name:  TLSAccept=psk zabbixe confige 
           lineinfile:
             path: "/etc/zabbix/zabbix_agent2.conf"
             regexp: '^TLSAccept='
@@ -86,7 +85,7 @@
             line: "TLSPSKIdentity={{ psk_identity }}"
             create: yes
 
-        - name: Konfiguruojam zabbix konfiga 
+        - name: Konfiguruojam zabbix konfiga, nustatome PSK faila
           lineinfile:
             path: "/etc/zabbix/zabbix_agent2.conf"
             regexp: '^TLSPSKFile='
