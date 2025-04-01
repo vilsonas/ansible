@@ -11,12 +11,13 @@
       apt:
         name:
           - auditd
+ #         - audispd-plugins
         state: present
 
     - name: Kopijuojam taisykles
       copy:
-        src: /etc/ansible/audit.rules  # Path to the file on the Ansible server
-        dest: /etc/audit/rules.d/audit.rules  # Destination path on remote machines
+        src: /etc/ansible/audit.rules  
+        dest: /etc/audit/rules.d/audit.rules  
 
     - name: Restart auditd service
       systemd:
