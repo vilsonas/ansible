@@ -11,7 +11,6 @@
       apt:
         name:
           - auditd
-          - audispd-plugins
         state: present
 
     - name: Kopijuojam taisykles
