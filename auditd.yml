@@ -7,17 +7,18 @@
       apt:
         update_cache: yes
 
-    - name: Install auditd ir audispd-plugins
+    - name: Install auditd and audispd-plugins
       apt:
         name:
           - auditd
- #         - audispd-plugins
+   #       - audispd-plugins
         state: present
 
-    - name: Kopijuojam taisykles
+    - name: Kopijuojam rules pagal Linux architectura
       copy:
-        src: /etc/ansible/audit.rules  
-        dest: /etc/audit/rules.d/audit.rules  
+        src: "/etc/ansible/audit.rules_{{ ansible_architecture }}"
+        dest: /etc/audit/rules.d/audit.rules
+      when: ansible_architecture in ['i386', 'amd64']  # i386 is the 32-bit architecture, amd64 is the 64-bit one
 
     - name: Restart auditd service
       systemd:
