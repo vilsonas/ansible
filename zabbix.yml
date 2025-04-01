@@ -14,7 +14,7 @@
         dest: "/tmp/zabbix-release_latest_7.2+debian12_all.deb"
 
     
-    - name: instaliuojam repository .deb
+    - name: Instaliuojam repository .deb
       command: dpkg -i /tmp/zabbix-release_latest_7.2+debian12_all.deb
       become: yes
 
