@@ -1,6 +1,6 @@
 ---
 - name: Sukurti vartotojus, prisijungimas tik su SSH
-  hosts: debian
+  hosts: dspace
   become: yes
   tasks:
   
