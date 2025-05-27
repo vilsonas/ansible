@@ -14,7 +14,7 @@
     - name: Copy SSL files from control node to remote host
       copy:
         src: "/etc/ansible/SSL/"
-        dest: /root/
+        dest: /root/SSL/
         owner: root
         group: root
         mode: '0600'
