@@ -4,7 +4,7 @@
   tasks:
     - name: Copy SSL folder
       synchronize:
-        src: /etc/ansible/local/ssl/
+        src: /etc/ansible/SSL/
         dest: /root/
         mode: push
         recursive: yes
