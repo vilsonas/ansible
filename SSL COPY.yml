@@ -1,5 +1,5 @@
 - name: Copy SSL certificates
-  hosts: web  # or whatever group/host you're targeting
+  hosts: web
   become: true
   tasks:
 
