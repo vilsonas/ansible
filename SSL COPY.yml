@@ -1,16 +1,21 @@
-- name: Copy SSL folder and all its contents
+- name: Copy SSL folder and its files (no rsync)
   hosts: web
   become: true
   tasks:
 
-    - name: Ensure SSL folder exists on remote
+    - name: Ensure target SSL directory exists on remote
       file:
         path: /root/SSL
         state: directory
+        owner: root
+        group: root
         mode: '0700'
 
-    - name: Synchronize SSL directory from control node to remote host
-      synchronize:
-        src: /etc/ansible/SSL/
-        dest: /root/SSL/
-        recursive: yes
+    - name: Copy each SSL file from control node to remote
+      copy:
+        src: "{{ item }}"
+        dest: "/root/SSL/{{ item | basename }}"
+        owner: root
+        group: root
+        mode: '0600'
+      loop: "{{ lookup('fileglob', '/etc/ansible/SSL/*', wantlist=True) }}"
