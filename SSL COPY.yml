@@ -1,6 +1,7 @@
 - name: Copy SSL certificates
   hosts: web
   become: true
+  become_method: sudo
   tasks:
 
     - name: Create SSL folder on remote host
