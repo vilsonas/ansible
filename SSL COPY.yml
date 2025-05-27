@@ -1,0 +1,13 @@
+- name: Copy SSL folder efficiently using synchronize
+  hosts: your_target_hosts
+  become: true
+  tasks:
+    - name: Copy SSL folder
+      synchronize:
+        src: /etc/ansible/local/ssl/
+        dest: /root/
+        mode: push
+        recursive: yes
+        rsync_opts:
+          - "--chown=root:root"
+      delegate_to: localhost
