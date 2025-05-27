@@ -1,5 +1,5 @@
 - name: Copy SSL folder efficiently using synchronize
-  hosts: your_target_hosts
+  hosts: web
   become: true
   tasks:
     - name: Copy SSL folder
