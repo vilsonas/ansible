@@ -8,6 +8,6 @@
         dest: /root/
         mode: push
         recursive: yes
-        rsync_opts:
-          - "--chown=root:root"
+ #       rsync_opts:
+#          - "--chown=root:root"
       delegate_to: localhost
