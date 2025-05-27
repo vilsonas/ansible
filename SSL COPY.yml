@@ -1,20 +1,16 @@
-- name: Copy SSL certificates
+- name: Copy SSL folder and all its contents
   hosts: web
   become: true
   tasks:
 
-    - name: Create SSL folder on remote host
+    - name: Ensure SSL folder exists on remote
       file:
         path: /root/SSL
         state: directory
-        owner: root
-        group: root
         mode: '0700'
 
-    - name: Copy SSL files from control node to remote host
-      copy:
-        src: "/etc/ansible/SSL/"
+    - name: Synchronize SSL directory from control node to remote host
+      synchronize:
+        src: /etc/ansible/SSL/
         dest: /root/SSL/
-        owner: root
-        group: root
-        mode: '0600'
+        recursive: yes
