@@ -1,13 +1,22 @@
-- name: Copy SSL folder efficiently using synchronize
-  hosts: web
+- name: Copy SSL certificates
+  hosts: web  # or whatever group/host you're targeting
   become: true
   tasks:
-    - name: Copy SSL folder
-      synchronize:
-        src: /etc/ansible/SSL/
-        dest: /home/vilius/
-        mode: push
-        recursive: yes
- #       rsync_opts:
-#          - "--chown=root:root"
+
+    - name: Create SSL folder on remote host
+      file:
+        path: /root/SSL
+        state: directory
+        owner: root
+        group: root
+        mode: '0700'
+
+    - name: Copy SSL files from control node to remote host
+      copy:
+        src: "/etc/ansible/SSL/"
+        dest: /root/
+        owner: root
+        group: root
+        mode: '0600'
+        remote_src: no
       delegate_to: localhost
