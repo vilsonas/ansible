@@ -1,99 +1,98 @@
-- name: Install Zabbix Agent 2 (7.2)
+- name: Install Zabbix Agent 2 LTS (7.0) on Debian, Ubuntu, or Fedora
   hosts: test
-  become: yes  
+  become: yes
+  vars:
+    debian_repo_url: "https://repo.zabbix.com/zabbix/7.0/debian/pool/main/z/zabbix-release/zabbix-release_latest_7.0+{{ ansible_distribution_release }}_all.deb"
+    ubuntu_repo_url: "https://repo.zabbix.com/zabbix/7.0/ubuntu/pool/main/z/zabbix-release/zabbix-release_latest_7.0+{{ ansible_distribution_release }}_all.deb"
+    fedora_repo_url: "https://repo.zabbix.com/zabbix/7.0/rhel/8/x86_64/zabbix-release-7.0-1.el8.noarch.rpm"
 
   tasks:
-    - name: Include encrypted vars
-      ansible.builtin.include_vars:
-        file: /etc/ansible/zabbix_vars.yml
+    - name: Install prerequisites for Debian/Ubuntu
+      apt:
+        name: apt-transport-https
+        state: present
+      when: ansible_os_family == "Debian"
 
-    
-    - name: Download zabbix 7.2 repository
+    - name: Download Zabbix repo for Debian
       get_url:
-        url: "https://repo.zabbix.com/zabbix/7.2/release/debian/pool/main/z/zabbix-release/zabbix-release_latest_7.2+debian12_all.deb"
-        dest: "/tmp/zabbix-release_latest_7.2+debian12_all.deb"
+        url: "{{ debian_repo_url }}"
+        dest: "/tmp/zabbix-release_7.0.deb"
+      when: ansible_distribution == 'Debian'
 
-    
-    - name: Instaliuojam repository .deb
-      command: dpkg -i /tmp/zabbix-release_latest_7.2+debian12_all.deb
-      become: yes
+    - name: Download Zabbix repo for Ubuntu
+      get_url:
+        url: "{{ ubuntu_repo_url }}"
+        dest: "/tmp/zabbix-release_7.0.deb"
+      when: ansible_distribution == 'Ubuntu'
 
+    - name: Install Zabbix repo (Debian/Ubuntu)
+      apt:
+        deb: "/tmp/zabbix-release_7.0.deb"
+      when: ansible_os_family == "Debian"
 
-    - name: Install Zabbix Agent 2 7.2
+    - name: Download Zabbix repo for Fedora
+      get_url:
+        url: "{{ fedora_repo_url }}"
+        dest: "/tmp/zabbix-release_7.0.rpm"
+      when: ansible_distribution == 'Fedora'
+
+    - name: Install Zabbix repo (Fedora)
+      dnf:
+        name: "/tmp/zabbix-release_7.0.rpm"
+        state: present
+      when: ansible_distribution == 'Fedora'
+
+    - name: Update package cache (Fedora)
+      dnf:
+        update_cache: yes
+      when: ansible_distribution == 'Fedora'
+
+    - name: Install Zabbix Agent 2 (Debian/Ubuntu)
       apt:
         name: zabbix-agent2
         state: present
         update_cache: yes
+      when: ansible_os_family == "Debian"
 
-    - name: Paleidziame Zabbix Agent 2
+    - name: Install Zabbix Agent 2 (Fedora)
+      dnf:
+        name: zabbix-agent2
+        state: present
+        update_cache: yes
+      when: ansible_distribution == 'Fedora'
+
+    - name: Enable and start Zabbix Agent 2
       systemd:
         name: zabbix-agent2
         state: started
         enabled: yes
 
-    - name: Wait for the configuration file to be created
+    - name: Wait for the config file to exist
       wait_for:
         path: /etc/zabbix/zabbix_agent2.conf
         state: present
         delay: 5
         timeout: 30
 
-
-    - name: Nustatom zabbix serverio IP 
+    - name: Set Zabbix Server IP
       lineinfile:
-        path: "/etc/zabbix/zabbix_agent2.conf"
+        path: /etc/zabbix/zabbix_agent2.conf
         regexp: '^Server='
-        line: "Server={{ zabbix_server_ip }}"
+        line: "Server=zabbix.bp.lt"
 
-
-    - name: Zabbix agento hostname
+    - name: Set Zabbix ServerActive address
       lineinfile:
-        path: "/etc/zabbix/zabbix_agent2.conf"
+        path: /etc/zabbix/zabbix_agent2.conf
+        regexp: '^ServerActive='
+        line: "ServerActive=zabbix.bp.lt"
+
+    - name: Set Zabbix Agent hostname
+      lineinfile:
+        path: /etc/zabbix/zabbix_agent2.conf
         regexp: '^Hostname='
         line: "Hostname={{ ansible_hostname }}"
 
-    - name: Igalinam PSK encryption  
-      block:
-        - name: Set TLSConnect=psk in the Zabbix agent configuration
-          lineinfile:
-            path: "/etc/zabbix/zabbix_agent2.conf"
-            regexp: '^TLSConnect='
-            line: "TLSConnect=psk"
-            create: yes
-
-        - name:  TLSAccept=psk zabbixe confige 
-          lineinfile:
-            path: "/etc/zabbix/zabbix_agent2.conf"
-            regexp: '^TLSAccept='
-            line: "TLSAccept=psk"
-            create: yes
-
-    - name: Sukuriam PSK zabbix useriui
-      copy:
-        dest: "/etc/zabbix/zabbix_agentd.psk"
-        content: "{{ psk_key }}"
-        owner: zabbix
-        group: zabbix
-        mode: '0600'
-
-    - name: Konfiguruojam zabbix konfiga
-      block:
-        - name: Set TLSPSKIdentity in the Zabbix agent configuration
-          lineinfile:
-            path: "/etc/zabbix/zabbix_agent2.conf"
-            regexp: '^TLSPSKIdentity='
-            line: "TLSPSKIdentity={{ psk_identity }}"
-            create: yes
-
-        - name: Konfiguruojam zabbix konfiga, nustatome PSK faila
-          lineinfile:
-            path: "/etc/zabbix/zabbix_agent2.conf"
-            regexp: '^TLSPSKFile='
-            line: "TLSPSKFile=/etc/zabbix/zabbix_agentd.psk"
-            create: yes
-
-    - name: Restart Zabbix Agent 2 service
+    - name: Restart Zabbix Agent 2 to apply changes
       systemd:
         name: zabbix-agent2
         state: restarted
-        enabled: yes
