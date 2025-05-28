@@ -1,5 +1,5 @@
 - name: Install Zabbix Agent 2 LTS (7.0) on Debian, Ubuntu, or Fedora
-  hosts: test
+  hosts: test2
   become: yes
   vars:
     debian_repo_url: "https://repo.zabbix.com/zabbix/7.0/debian/pool/main/z/zabbix-release/zabbix-release_latest_7.0+{{ ansible_distribution_release }}_all.deb"
