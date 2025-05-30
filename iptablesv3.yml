@@ -8,6 +8,15 @@
         name: iptables
         state: present
 
+    - name: Set default policies to ACCEPT temporarily (to avoid lockout)
+      ansible.builtin.iptables:
+        chain: "{{ item }}"
+        policy: ACCEPT
+      loop:
+        - INPUT
+        - OUTPUT
+        - FORWARD
+
     - name: Flush existing iptables rules and custom chains
       ansible.builtin.shell: |
         iptables -F
@@ -48,10 +57,13 @@
         iptables -A OUTPUT -j LOG --log-prefix "IPTABLES DROP OUTPUT: " --log-level 5
 
     - name: Set default policies to DROP
-      ansible.builtin.shell: |
-        iptables -P INPUT DROP
-        iptables -P FORWARD DROP
-        iptables -P OUTPUT DROP
+      ansible.builtin.iptables:
+        chain: "{{ item }}"
+        policy: DROP
+      loop:
+        - INPUT
+        - OUTPUT
+        - FORWARD
 
     - name: Ensure iptables-persistent is installed (Debian/Ubuntu)
       ansible.builtin.package:
