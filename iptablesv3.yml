@@ -1,0 +1,53 @@
+---
+- name: Configure strict iptables firewall
+  hosts: all
+  become: true
+  tasks:
+
+    - name: Flush existing iptables rules
+      ansible.builtin.command: iptables -F
+
+    - name: Apply INPUT rules
+      ansible.builtin.shell: |
+        iptables -A INPUT -m conntrack --ctstate RELATED,ESTABLISHED -j ACCEPT
+        iptables -A INPUT -p tcp --dport 22 -m conntrack --ctstate NEW -j ACCEPT
+        iptables -A INPUT -p tcp --dport 80 -m conntrack --ctstate NEW -j ACCEPT
+        iptables -A INPUT -p tcp --dport 443 -m conntrack --ctstate NEW -j ACCEPT
+        iptables -A INPUT -p tcp --dport 53 -m conntrack --ctstate NEW -j ACCEPT
+        iptables -A INPUT -p udp --dport 53 -j ACCEPT
+        iptables -A INPUT -i lo -j ACCEPT
+        iptables -A INPUT -p tcp --dport 10050 -m conntrack --ctstate NEW -j ACCEPT
+        iptables -A INPUT -s 192.168.193.100/32 -p icmp --icmp-type 8 -m conntrack --ctstate NEW -j ACCEPT
+        iptables -A INPUT -s 192.168.189.0/24 -p icmp --icmp-type 8 -m conntrack --ctstate NEW -j ACCEPT
+        iptables -A INPUT -p icmp --icmp-type 0 -m conntrack --ctstate RELATED,ESTABLISHED -j ACCEPT
+        iptables -A INPUT -p icmp --icmp-type 8 -j REJECT --reject-with icmp-host-unreachable
+        iptables -A INPUT -j LOG --log-prefix "IPTABLES DROP INPUT: " --log-level 5
+
+    - name: Apply OUTPUT rules
+      ansible.builtin.shell: |
+        iptables -A OUTPUT -m conntrack --ctstate RELATED,ESTABLISHED -j ACCEPT
+        iptables -A OUTPUT -p tcp --dport 22 -m conntrack --ctstate NEW -j ACCEPT
+        iptables -A OUTPUT -p tcp --dport 80 -m conntrack --ctstate NEW -j ACCEPT
+        iptables -A OUTPUT -p tcp --dport 443 -m conntrack --ctstate NEW -j ACCEPT
+        iptables -A OUTPUT -p tcp --dport 5614 -m conntrack --ctstate NEW -j ACCEPT
+        iptables -A OUTPUT -p tcp --dport 1514 -m conntrack --ctstate NEW -j ACCEPT
+        iptables -A OUTPUT -p udp --dport 53 -j ACCEPT
+        iptables -A OUTPUT -p tcp --dport 53 -m conntrack --ctstate NEW -j ACCEPT
+        iptables -A OUTPUT -p udp --dport 514 -j ACCEPT
+        iptables -A OUTPUT -p tcp --dport 389 -m conntrack --ctstate NEW -j ACCEPT
+        iptables -A OUTPUT -p tcp --dport 2222 -m conntrack --ctstate NEW -j ACCEPT
+        iptables -A OUTPUT -p icmp --icmp-type 8 -j ACCEPT
+        iptables -A OUTPUT -o lo -j ACCEPT
+        iptables -A OUTPUT -j LOG --log-prefix "IPTABLES DROP OUTPUT: " --log-level 5
+
+
+    - name: Set default policies to DROP
+      ansible.builtin.shell: |
+        iptables -P INPUT DROP
+        iptables -P FORWARD DROP
+        iptables -P OUTPUT DROP
+
+    - name: Save iptables rules
+      ansible.builtin.command: iptables-save > /etc/iptables/rules.v4
+      when: ansible_facts['os_family'] == 'Debian'
+
