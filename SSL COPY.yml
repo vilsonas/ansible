@@ -1,5 +1,5 @@
 - name: Copy SSL folder and its files (no rsync)
-  hosts: web
+  hosts: test2
   become: true
   tasks:
 
