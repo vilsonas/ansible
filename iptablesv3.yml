@@ -1,8 +1,12 @@
----
-- name: Configure strict iptables firewall
+- name: Install and configure strict iptables firewall
   hosts: all
   become: true
   tasks:
+
+    - name: Install iptables
+      ansible.builtin.package:
+        name: iptables
+        state: present
 
     - name: Flush existing iptables rules
       ansible.builtin.command: iptables -F
@@ -19,6 +23,7 @@
         iptables -A INPUT -p tcp --dport 10050 -m conntrack --ctstate NEW -j ACCEPT
         iptables -A INPUT -s 192.168.193.100/32 -p icmp --icmp-type 8 -m conntrack --ctstate NEW -j ACCEPT
         iptables -A INPUT -s 192.168.189.0/24 -p icmp --icmp-type 8 -m conntrack --ctstate NEW -j ACCEPT
+        iptables -A INPUT -s 192.168.190.0/24 -p icmp --icmp-type 8 -m conntrack --ctstate NEW -j ACCEPT
         iptables -A INPUT -p icmp --icmp-type 0 -m conntrack --ctstate RELATED,ESTABLISHED -j ACCEPT
         iptables -A INPUT -p icmp --icmp-type 8 -j REJECT --reject-with icmp-host-unreachable
         iptables -A INPUT -j LOG --log-prefix "IPTABLES DROP INPUT: " --log-level 5
@@ -40,14 +45,18 @@
         iptables -A OUTPUT -o lo -j ACCEPT
         iptables -A OUTPUT -j LOG --log-prefix "IPTABLES DROP OUTPUT: " --log-level 5
 
-
     - name: Set default policies to DROP
       ansible.builtin.shell: |
         iptables -P INPUT DROP
         iptables -P FORWARD DROP
         iptables -P OUTPUT DROP
 
-    - name: Save iptables rules
-      ansible.builtin.command: iptables-save > /etc/iptables/rules.v4
+    - name: Ensure iptables-persistent is installed (Debian)
+      ansible.builtin.package:
+        name: iptables-persistent
+        state: present
       when: ansible_facts['os_family'] == 'Debian'
 
+    - name: Save iptables rules (Debian)
+      ansible.builtin.command: iptables-save > /etc/iptables/rules.v4
+      when: ansible_facts['os_family'] == 'Debian'
