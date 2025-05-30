@@ -1,5 +1,5 @@
 - name: Install and configure strict iptables firewall
-  hosts: test2
+  hosts: test
   become: true
   tasks:
 
