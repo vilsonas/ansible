@@ -8,8 +8,10 @@
         name: iptables
         state: present
 
-    - name: Flush existing iptables rules
-      ansible.builtin.command: iptables -F
+    - name: Flush existing iptables rules and custom chains
+      ansible.builtin.shell: |
+        iptables -F
+        iptables -X
 
     - name: Apply INPUT rules
       ansible.builtin.shell: |
@@ -51,12 +53,12 @@
         iptables -P FORWARD DROP
         iptables -P OUTPUT DROP
 
-    - name: Ensure iptables-persistent is installed (Debian)
+    - name: Ensure iptables-persistent is installed (Debian/Ubuntu)
       ansible.builtin.package:
         name: iptables-persistent
         state: present
       when: ansible_facts['os_family'] == 'Debian'
 
-    - name: Save iptables rules (Debian)
-      ansible.builtin.command: iptables-save > /etc/iptables/rules.v4
+    - name: Save iptables rules to /etc/iptables/rules.v4 (Debian/Ubuntu)
+      ansible.builtin.shell: iptables-save | tee /etc/iptables/rules.v4 > /dev/null
       when: ansible_facts['os_family'] == 'Debian'
