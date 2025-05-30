@@ -56,14 +56,14 @@
         iptables -A OUTPUT -o lo -j ACCEPT
         iptables -A OUTPUT -j LOG --log-prefix "IPTABLES DROP OUTPUT: " --log-level 5
 
-    #- name: Set default policies to DROP
-     # ansible.builtin.iptables:
-     #   chain: "{{ item }}"
-    #    policy: DROP
-   #   loop:
-  #      - INPUT
- #       - OUTPUT
-#        - FORWARD
+    - name: Set default policies to DROP
+      ansible.builtin.iptables:
+        chain: "{{ item }}"
+        policy: DROP
+      loop:
+        - INPUT
+        - OUTPUT
+        - FORWARD
 
     - name: Ensure iptables-persistent is installed (Debian/Ubuntu)
       ansible.builtin.package:
